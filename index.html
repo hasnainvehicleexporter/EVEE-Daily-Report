@@ -11,30 +11,43 @@
 
 <body>
 
+  <!-- ================= HEADER ================= -->
+
   <header class="top-header">
-    <div>
-      <h1>EVEE Daily Report</h1>
-      <p>Daily Production Report</p>
+    <div class="header-inner">
+      <div>
+        <h1>EVEE Daily Report</h1>
+        <p>Daily Production Report</p>
+      </div>
     </div>
   </header>
 
+
   <main class="container">
 
-    <!-- DATE -->
+    <!-- ================= DATE ================= -->
+
     <section class="card">
+
       <div class="section-title">
         <span>01</span>
         <h2>Report Date</h2>
       </div>
 
-      <div class="form-group">
+      <div class="form-group single-date">
         <label for="reportDate">Date</label>
-        <input type="date" id="reportDate">
+
+        <input
+          type="date"
+          id="reportDate"
+        >
       </div>
+
     </section>
 
 
-    <!-- SUMMARY -->
+    <!-- ================= SUMMARY ================= -->
+
     <section class="summary-grid">
 
       <div class="summary-card">
@@ -60,7 +73,8 @@
     </section>
 
 
-    <!-- MANPOWER -->
+    <!-- ================= MANPOWER ================= -->
+
     <section class="card">
 
       <div class="section-title">
@@ -71,7 +85,10 @@
       <div class="form-grid">
 
         <div class="form-group">
-          <label>Total Workers</label>
+          <label for="totalWorkers">
+            Total Workers
+          </label>
+
           <input
             type="number"
             id="totalWorkers"
@@ -80,8 +97,12 @@
           >
         </div>
 
+
         <div class="form-group">
-          <label>Absent Workers</label>
+          <label for="absentWorkers">
+            Absent Workers
+          </label>
+
           <input
             type="number"
             id="absentWorkers"
@@ -90,10 +111,12 @@
           >
         </div>
 
+
         <div class="result-box">
           <span>Present Workers</span>
           <strong id="presentWorkers">0</strong>
         </div>
+
 
         <div class="result-box">
           <span>Present Worker %</span>
@@ -105,7 +128,8 @@
     </section>
 
 
-    <!-- SHIFT TIME -->
+    <!-- ================= SHIFT TIME ================= -->
+
     <section class="card">
 
       <div class="section-title">
@@ -116,7 +140,10 @@
       <div class="form-grid">
 
         <div class="form-group">
-          <label>Shift Hours</label>
+          <label for="shiftHours">
+            Shift Hours
+          </label>
+
           <input
             type="number"
             id="shiftHours"
@@ -126,15 +153,18 @@
           >
         </div>
 
+
         <div class="result-box">
           <span>Shift Minutes</span>
           <strong id="shiftMinutes">0</strong>
         </div>
 
+
         <div class="result-box">
           <span>Total Deductions</span>
           <strong id="totalDeductions">0</strong>
         </div>
+
 
         <div class="result-box highlight">
           <span>Final Available Minutes</span>
@@ -146,7 +176,8 @@
     </section>
 
 
-    <!-- NORMAL DEDUCTIONS -->
+    <!-- ================= NORMAL DEDUCTIONS ================= -->
+
     <section class="card">
 
       <div class="section-title">
@@ -155,19 +186,24 @@
       </div>
 
       <p class="section-note">
-        Add normal deductions such as morning assembly, tea break, lunch, etc.
+        Add assembly, tea break, lunch or any other planned deduction.
       </p>
 
       <div id="deductionContainer"></div>
 
-      <button class="add-btn" id="addDeductionBtn">
+      <button
+        type="button"
+        class="add-btn"
+        id="addDeductionBtn"
+      >
         + Add Deduction
       </button>
 
     </section>
 
 
-    <!-- TIME LOSS -->
+    <!-- ================= TIME LOSS ================= -->
+
     <section class="card">
 
       <div class="section-title">
@@ -176,24 +212,34 @@
       </div>
 
       <p class="section-note">
-        Enter downtime with From time, To time and reason.
+        Add unlimited time-loss entries. Loss minutes are calculated automatically.
       </p>
 
       <div id="lossContainer"></div>
 
       <div class="total-line">
+
         <span>Total Time Loss</span>
-        <strong id="totalLossMinutes">0 min</strong>
+
+        <strong id="totalLossMinutes">
+          0 min
+        </strong>
+
       </div>
 
-      <button class="add-btn" id="addLossBtn">
+      <button
+        type="button"
+        class="add-btn"
+        id="addLossBtn"
+      >
         + Add Time Loss
       </button>
 
     </section>
 
 
-    <!-- BIKE PLAN -->
+    <!-- ================= BIKE PLAN ================= -->
+
     <section class="card">
 
       <div class="section-title">
@@ -202,11 +248,31 @@
       </div>
 
       <p class="section-note">
-        Enter the planned quantity and cycle time for each model.
-        The system will automatically calculate required minutes and possible bikes.
+        Enter the planned quantity and cycle time for every model.
+        Available production time is shared between all planned models.
       </p>
 
+
+      <!-- Desktop heading -->
+
+      <div class="plan-heading">
+
+        <span>Model</span>
+        <span>Color</span>
+        <span>Plan Qty</span>
+        <span>Cycle Time</span>
+        <span>Required Min</span>
+        <span>Possible Bikes</span>
+        <span>Balance</span>
+        <span></span>
+
+      </div>
+
+
       <div id="planContainer"></div>
+
+
+      <!-- Plan summary -->
 
       <div class="plan-summary">
 
@@ -215,31 +281,46 @@
           <strong id="totalPlan">0</strong>
         </div>
 
+
         <div>
           <span>Total Required Minutes</span>
           <strong id="totalPlanMinutes">0</strong>
         </div>
+
 
         <div>
           <span>Available Minutes</span>
           <strong id="planAvailableMinutes">0</strong>
         </div>
 
+
         <div>
+          <span>Remaining Minutes</span>
+          <strong id="planRemainingMinutes">0</strong>
+        </div>
+
+
+        <div class="plan-status-box">
           <span>Plan Status</span>
           <strong id="planStatus">—</strong>
         </div>
 
       </div>
 
-      <button class="add-btn" id="addPlanBtn">
+
+      <button
+        type="button"
+        class="add-btn"
+        id="addPlanBtn"
+      >
         + Add Planned Bike
       </button>
 
     </section>
 
 
-    <!-- COMPLETED -->
+    <!-- ================= COMPLETED ================= -->
+
     <section class="card">
 
       <div class="section-title">
@@ -249,19 +330,31 @@
 
       <div id="completedContainer"></div>
 
+
       <div class="total-line">
+
         <span>Total Completed Bikes</span>
-        <strong id="totalCompleted">0</strong>
+
+        <strong id="totalCompleted">
+          0
+        </strong>
+
       </div>
 
-      <button class="add-btn" id="addCompletedBtn">
+
+      <button
+        type="button"
+        class="add-btn"
+        id="addCompletedBtn"
+      >
         + Add Completed Bike
       </button>
 
     </section>
 
 
-    <!-- QUALITY -->
+    <!-- ================= QUALITY ================= -->
+
     <section class="card quality-card">
 
       <div class="section-title">
@@ -269,10 +362,15 @@
         <h2>Quality Department</h2>
       </div>
 
+
       <div class="form-grid">
 
         <div class="form-group">
-          <label>Assembly Line SPR (%)</label>
+
+          <label for="sprPercentage">
+            Assembly Line SPR (%)
+          </label>
+
           <input
             type="number"
             id="sprPercentage"
@@ -281,19 +379,27 @@
             step="0.01"
             placeholder="Example: 98.5"
           >
+
         </div>
 
+
         <div class="form-group">
-          <label>Total FG Bikes - Quality Dept.</label>
+
+          <label for="qualityFg">
+            Total FG Bikes - Quality Dept.
+          </label>
+
           <input
             type="number"
             id="qualityFg"
             min="0"
             placeholder="Enter FG bikes"
           >
+
         </div>
 
       </div>
+
 
       <div class="quality-results">
 
@@ -312,7 +418,8 @@
     </section>
 
 
-    <!-- REWORK -->
+    <!-- ================= REWORK ================= -->
+
     <section class="card">
 
       <div class="section-title">
@@ -320,21 +427,34 @@
         <h2>Rework Bikes</h2>
       </div>
 
+
       <div id="reworkContainer"></div>
 
+
       <div class="total-line">
+
         <span>Total Rework Bikes</span>
-        <strong id="totalRework">0</strong>
+
+        <strong id="totalRework">
+          0
+        </strong>
+
       </div>
 
-      <button class="add-btn" id="addReworkBtn">
+
+      <button
+        type="button"
+        class="add-btn"
+        id="addReworkBtn"
+      >
         + Add Rework
       </button>
 
     </section>
 
 
-    <!-- FG -->
+    <!-- ================= FG ================= -->
+
     <section class="card">
 
       <div class="section-title">
@@ -342,33 +462,55 @@
         <h2>FG - Finished Goods</h2>
       </div>
 
+
       <div id="fgContainer"></div>
 
+
       <div class="total-line">
+
         <span>Total FG Bikes</span>
-        <strong id="totalFG">0</strong>
+
+        <strong id="totalFG">
+          0
+        </strong>
+
       </div>
 
-      <button class="add-btn" id="addFgBtn">
+
+      <button
+        type="button"
+        class="add-btn"
+        id="addFgBtn"
+      >
         + Add FG
       </button>
 
     </section>
 
 
-    <!-- FINAL REPORT -->
+    <!-- ================= FINAL REPORT ================= -->
+
     <section class="report-card">
 
       <div class="report-header">
 
         <div>
+
           <span>FINAL REPORT</span>
-          <h2>EVEE Daily Production Report</h2>
+
+          <h2>
+            EVEE Daily Production Report
+          </h2>
+
         </div>
 
-        <div id="reportDatePreview">—</div>
+
+        <div id="reportDatePreview">
+          —
+        </div>
 
       </div>
+
 
       <textarea
         id="finalReport"
@@ -376,13 +518,19 @@
         placeholder="Your final report will appear here..."
       ></textarea>
 
-      <button class="copy-btn" id="copyReportBtn">
+
+      <button
+        type="button"
+        class="copy-btn"
+        id="copyReportBtn"
+      >
         COPY REPORT
       </button>
 
     </section>
 
   </main>
+
 
   <script src="script.js"></script>
 
