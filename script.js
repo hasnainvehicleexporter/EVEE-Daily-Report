@@ -3,16 +3,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ============ HELPERS ============
   function $(id) { return document.getElementById(id); }
-
-  function num(v) {
-    var n = parseFloat(v);
-    return isNaN(n) ? 0 : n;
-  }
-
-  function int(v) {
-    var n = parseInt(v, 10);
-    return isNaN(n) ? 0 : n;
-  }
+  function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+  function int(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
 
   function todayISO() {
     var d = new Date();
@@ -37,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // ============ INIT ============
   $('reportDate').value = todayISO();
 
-  // ============ RENDER DEDUCTIONS ============
+  // ============ RENDER: DEDUCTIONS ============
   function renderDeductions() {
     var body = $('deductionBody');
     body.innerHTML = '';
@@ -68,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ============ RENDER TIME LOSS ============
+  // ============ RENDER: TIME LOSS ============
   function renderTimeLosses() {
     var body = $('timeLossBody');
     body.innerHTML = '';
@@ -112,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return tm - fm;
   }
 
-  // ============ RENDER BIKE PLAN ============
+  // ============ RENDER: BIKE PLAN ============
   function renderBikePlans() {
     var body = $('bikePlanBody');
     body.innerHTML = '';
@@ -149,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ============ RENDER SIMPLE TABLES (completed/rework/fg) ============
+  // ============ RENDER SIMPLE TABLES ============
   function renderSimpleTable(bodyId, dataArr, renderFnName) {
     var body = $(bodyId);
     body.innerHTML = '';
@@ -247,11 +239,10 @@ document.addEventListener('DOMContentLoaded', function () {
       if (remaining < 0) remaining = 0;
     });
 
-    // update readonly cells
     var body = $('bikePlanBody');
     Array.from(body.children).forEach(function (tr, i) {
       var inputs = tr.querySelectorAll('input');
-      if (inputs.length >= 7) {
+      if (inputs.length >= 7 && bikePlans[i]) {
         inputs[4].value = num(bikePlans[i].required);
         inputs[5].value = num(bikePlans[i].possible);
         inputs[6].value = num(bikePlans[i].balance);
@@ -319,12 +310,12 @@ document.addEventListener('DOMContentLoaded', function () {
     r += 'Final Production Minutes : ' + num($('finalProductionMinutes').value) + ' min\n\n';
 
     r += '--- BIKE PLAN ---\n';
-    r += 'Model | Color | Plan Qty | Cycle Time | Required Minutes | Possible Bikes | Balance\n';
+    r += 'Model | Color | Plan Qty | C.T | Required Time | Possible Bikes | Balance\n';
     bikePlans.forEach(function (b) {
       r += (b.model || '-') + ' | ' + (b.color || '-') + ' | ' + num(b.plan) + ' | ' + num(b.cycle) + ' | ' + num(b.required) + ' | ' + num(b.possible) + ' | ' + num(b.balance) + '\n';
     });
     r += '\nTotal Planned Bikes    : ' + planData.totalPlanned + '\n';
-    r += 'Total Required Minutes : ' + planData.totalRequired + '\n';
+    r += 'Total Required Time    : ' + planData.totalRequired + '\n';
     r += 'Available Production   : ' + num($('finalProductionMinutes').value) + ' min\n';
     r += 'Remaining Minutes      : ' + planData.remaining + '\n';
     r += 'Status                 : ' + $('planStatus').textContent + '\n\n';
@@ -561,14 +552,14 @@ document.addEventListener('DOMContentLoaded', function () {
     y += 3;
 
     section('BIKE PLAN');
-    var bpW = [30, 22, 18, 20, 25, 22, 20];
-    tableHead(['Model', 'Color', 'Plan', 'Cycle', 'Required', 'Possible', 'Balance'], bpW);
+    var bpW = [26, 20, 16, 14, 24, 22, 18];
+    tableHead(['Model', 'Color', 'Plan Qty', 'C.T', 'Required Time', 'Possible', 'Balance'], bpW);
     bikePlans.forEach(function (b) {
       tableRow([b.model || '-', b.color || '-', num(b.plan), num(b.cycle), num(b.required), num(b.possible), num(b.balance)], bpW);
     });
     y += 2;
     line('Total Planned Bikes', $('planTotalPlanned').textContent);
-    line('Total Required Minutes', $('planTotalRequired').textContent);
+    line('Total Required Time', $('planTotalRequired').textContent);
     line('Available Production Minutes', $('planAvailable').textContent);
     line('Remaining Minutes', $('planRemaining').textContent);
     line('Status', $('planStatus').textContent);
