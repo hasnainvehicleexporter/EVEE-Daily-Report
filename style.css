@@ -4,464 +4,824 @@
   --green: #9CE37D;
   --green-light: #effbe9;
   --green-dark: #77c45a;
+
   --gray: #666666;
-  --light-gray: #eeeeee;
+  --light-gray: #f5f5f5;
   --border: #dddddd;
+
   --red: #d64545;
+  --red-light: #ffe7e7;
+
+  --shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
+
+
+/* ================= RESET ================= */
 
 * {
   box-sizing: border-box;
 }
 
+
+html {
+  scroll-behavior: smooth;
+}
+
+
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(135deg, #ffffff 0%, #effbe9 100%);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
   color: var(--black);
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #effbe9 100%
+    );
+
+  min-height: 100vh;
 }
+
+
+/* ================= HEADER ================= */
 
 .top-header {
   background: var(--black);
+
   color: var(--white);
+
   padding: 28px 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.top-header div {
-  max-width: 1200px;
+
+.header-inner {
+  width: min(1200px, 94%);
+
   margin: auto;
 }
 
+
 .top-header h1 {
   margin: 0;
+
   font-size: 32px;
+
   letter-spacing: 0.5px;
 }
 
+
 .top-header p {
   margin: 6px 0 0;
+
   color: var(--green);
+
   font-size: 15px;
 }
 
+
+/* ================= CONTAINER ================= */
+
 .container {
   width: min(1200px, 94%);
+
   margin: 25px auto 50px;
 }
 
+
+/* ================= CARDS ================= */
+
 .card {
   background: var(--white);
+
   border-radius: 18px;
+
   padding: 24px;
+
   margin-bottom: 22px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+
+  box-shadow: var(--shadow);
+
+  border:
+    1px solid rgba(0, 0, 0, 0.05);
 }
+
+
+/* ================= SECTION TITLE ================= */
 
 .section-title {
   display: flex;
+
   align-items: center;
+
   gap: 12px;
+
   margin-bottom: 20px;
 }
 
-.section-title span {
+
+.section-title > span {
   width: 38px;
   height: 38px;
+
   display: flex;
+
   align-items: center;
   justify-content: center;
+
   background: var(--black);
+
   color: var(--green);
+
   border-radius: 10px;
+
   font-weight: bold;
+
   font-size: 14px;
 }
+
 
 .section-title h2 {
   margin: 0;
+
   font-size: 21px;
 }
 
+
 .section-note {
   color: var(--gray);
+
   font-size: 14px;
+
   margin-top: -8px;
+
   margin-bottom: 18px;
 }
 
+
+/* ================= FORM ================= */
+
+.single-date {
+  max-width: 300px;
+}
+
+
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
   gap: 15px;
 }
 
+
 .form-group {
   display: flex;
+
   flex-direction: column;
+
   gap: 7px;
 }
 
+
 .form-group label {
   font-size: 13px;
+
   font-weight: bold;
 }
+
 
 input,
 select,
 textarea {
   width: 100%;
-  border: 1px solid var(--border);
+
+  border:
+    1px solid var(--border);
+
   border-radius: 10px;
+
   padding: 12px 13px;
+
   font-size: 14px;
+
   outline: none;
-  background: #fff;
-  transition: 0.2s;
+
+  background: var(--white);
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
+
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: var(--green-dark);
-  box-shadow: 0 0 0 3px rgba(156, 227, 125, 0.25);
+  border-color:
+    var(--green-dark);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(156, 227, 125, 0.25);
 }
+
+
+/* ================= SUMMARY ================= */
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
   gap: 15px;
+
   margin-bottom: 22px;
 }
 
+
 .summary-card {
   background: var(--black);
+
   color: var(--white);
+
   border-radius: 16px;
+
   padding: 20px;
 }
 
+
 .summary-card span {
   color: #cccccc;
+
   font-size: 13px;
 }
 
+
 .summary-card strong {
   display: block;
+
   margin-top: 8px;
+
   color: var(--green);
+
   font-size: 28px;
 }
 
+
+/* ================= RESULT BOX ================= */
+
 .result-box {
   background: var(--green-light);
-  border: 1px solid #d7efca;
+
+  border:
+    1px solid #d7efca;
+
   border-radius: 12px;
+
   padding: 14px;
 }
 
+
 .result-box span {
   display: block;
+
   color: var(--gray);
+
   font-size: 12px;
 }
 
+
 .result-box strong {
   display: block;
+
   margin-top: 6px;
+
   font-size: 22px;
 }
 
+
 .result-box.highlight {
   background: var(--black);
+
   color: var(--white);
+
   border-color: var(--black);
 }
+
 
 .result-box.highlight span {
   color: #cccccc;
 }
 
+
 .result-box.highlight strong {
   color: var(--green);
 }
 
+
+/* ================= DYNAMIC ROW ================= */
+
 .dynamic-row {
   display: grid;
+
   gap: 10px;
+
   align-items: end;
+
   background: #fafafa;
-  border: 1px solid var(--border);
+
+  border:
+    1px solid var(--border);
+
   border-radius: 12px;
+
   padding: 14px;
+
   margin-bottom: 10px;
 }
 
+
 .deduction-row {
-  grid-template-columns: 1.5fr 1fr auto;
+  grid-template-columns:
+    1.5fr
+    1fr
+    auto;
 }
+
 
 .loss-row {
-  grid-template-columns: 1fr 1fr 2fr 100px auto;
+  grid-template-columns:
+    1fr
+    1fr
+    2fr
+    100px
+    auto;
 }
 
-.bike-row {
-  grid-template-columns: 1.5fr 1fr 0.8fr 1fr 1fr 1fr auto;
+
+/* ================= BIKE PLAN ROW ================= */
+
+.plan-row {
+  grid-template-columns:
+    1.5fr
+    1fr
+    0.8fr
+    1fr
+    1fr
+    1fr
+    0.8fr
+    auto;
 }
 
-.bike-row.completed-row,
-.bike-row.simple-bike-row {
-  grid-template-columns: 1.5fr 1fr 0.8fr auto;
+
+.simple-bike-row {
+  grid-template-columns:
+    1.5fr
+    1fr
+    0.8fr
+    auto;
 }
+
 
 .row-label {
   font-size: 11px;
+
   color: var(--gray);
+
   margin-bottom: 5px;
+
   font-weight: bold;
+
   text-transform: uppercase;
 }
 
+
 .calculated {
   background: var(--green-light);
+
   border-radius: 9px;
+
   padding: 12px;
+
   min-height: 42px;
+
   display: flex;
+
   align-items: center;
+
   font-weight: bold;
+
+  white-space: nowrap;
 }
+
+
+.plan-capacity {
+  background: var(--black);
+
+  color: var(--green);
+}
+
+
+.plan-balance {
+  background: var(--green-light);
+}
+
 
 .remove-btn {
   height: 42px;
+
   border: none;
-  background: #ffe7e7;
+
+  background: var(--red-light);
+
   color: var(--red);
+
   border-radius: 9px;
+
   padding: 0 14px;
+
   cursor: pointer;
+
   font-weight: bold;
+
+  transition: 0.2s;
 }
+
 
 .remove-btn:hover {
   background: #ffd4d4;
 }
 
+
+/* ================= PLAN HEADING ================= */
+
+.plan-heading {
+  display: grid;
+
+  grid-template-columns:
+    1.5fr
+    1fr
+    0.8fr
+    1fr
+    1fr
+    1fr
+    0.8fr
+    auto;
+
+  gap: 10px;
+
+  padding:
+    0 14px 8px;
+
+  color: var(--gray);
+
+  font-size: 10px;
+
+  font-weight: bold;
+
+  text-transform: uppercase;
+}
+
+
+/* ================= BUTTONS ================= */
+
 .add-btn {
   border: none;
+
   background: var(--green);
+
   color: var(--black);
+
   padding: 12px 18px;
+
   border-radius: 10px;
+
   font-weight: bold;
+
   cursor: pointer;
+
   transition: 0.2s;
 }
 
+
 .add-btn:hover {
   background: var(--green-dark);
-  transform: translateY(-1px);
+
+  transform:
+    translateY(-1px);
 }
+
+
+/* ================= TOTAL ================= */
 
 .total-line {
   display: flex;
+
   justify-content: space-between;
+
   align-items: center;
+
   margin: 15px 0;
+
   padding: 14px 16px;
+
   background: var(--black);
+
   color: var(--white);
+
   border-radius: 10px;
 }
+
 
 .total-line strong {
   color: var(--green);
+
   font-size: 20px;
 }
+
+
+/* ================= PLAN SUMMARY ================= */
 
 .plan-summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(5, 1fr);
+
   gap: 12px;
+
   margin: 18px 0;
 }
 
+
 .plan-summary > div {
   background: var(--green-light);
-  border: 1px solid #d7efca;
+
+  border:
+    1px solid #d7efca;
+
   border-radius: 12px;
+
   padding: 14px;
 }
 
+
 .plan-summary span {
   display: block;
+
   color: var(--gray);
+
   font-size: 12px;
 }
+
 
 .plan-summary strong {
   display: block;
+
   margin-top: 6px;
-  font-size: 20px;
+
+  font-size: 18px;
 }
 
-.plan-capacity {
-  background: var(--black);
-  color: var(--green);
-}
 
-.quality-card {
-  border-top: 5px solid var(--green);
-}
-
-.quality-results {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-top: 18px;
-}
-
-.quality-results > div {
-  background: var(--black);
-  color: var(--white);
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.quality-results span {
-  color: #cccccc;
+.plan-status-box strong {
   font-size: 13px;
+
+  line-height: 1.3;
 }
 
-.quality-results strong {
-  display: block;
-  color: var(--green);
-  margin-top: 5px;
-  font-size: 22px;
-}
-
-.report-card {
-  background: var(--black);
-  color: var(--white);
-  border-radius: 18px;
-  padding: 25px;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18);
-}
-
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.report-header span {
-  color: var(--green);
-  font-size: 12px;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.report-header h2 {
-  margin: 5px 0 0;
-  font-size: 23px;
-}
-
-#reportDatePreview {
-  color: var(--green);
-  font-weight: bold;
-}
-
-#finalReport {
-  min-height: 550px;
-  resize: vertical;
-  background: #111111;
-  color: var(--white);
-  border: 1px solid #333333;
-  font-family: Consolas, monospace;
-  line-height: 1.6;
-}
-
-.copy-btn {
-  width: 100%;
-  margin-top: 15px;
-  border: none;
-  background: var(--green);
-  color: var(--black);
-  padding: 15px;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.copy-btn:hover {
-  background: var(--green-dark);
-}
-
-.empty-message {
-  padding: 15px;
-  color: var(--gray);
-  font-size: 13px;
-}
 
 .status-ok {
   color: #258a20 !important;
 }
+
 
 .status-short {
   color: var(--red) !important;
 }
 
 
-/* TABLE-LIKE PLANNED BIKE HEADER */
+/* ================= QUALITY ================= */
 
-.plan-heading {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 0.8fr 1fr 1fr 1fr auto;
-  gap: 10px;
-  padding: 0 14px 8px;
-  color: var(--gray);
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: uppercase;
+.quality-card {
+  border-top:
+    5px solid var(--green);
 }
 
 
-/* RESPONSIVE */
+.quality-results {
+  display: grid;
 
-@media (max-width: 950px) {
+  grid-template-columns:
+    1fr 1fr;
 
-  .form-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  gap: 15px;
 
-  .summary-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  margin-top: 18px;
+}
 
-  .plan-summary {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
-  .bike-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.quality-results > div {
+  background: var(--black);
+
+  color: var(--white);
+
+  border-radius: 12px;
+
+  padding: 16px;
+}
+
+
+.quality-results span {
+  color: #cccccc;
+
+  font-size: 13px;
+}
+
+
+.quality-results strong {
+  display: block;
+
+  color: var(--green);
+
+  margin-top: 5px;
+
+  font-size: 22px;
+}
+
+
+/* ================= REPORT ================= */
+
+.report-card {
+  background: var(--black);
+
+  color: var(--white);
+
+  border-radius: 18px;
+
+  padding: 25px;
+
+  box-shadow:
+    0 10px 35px
+    rgba(0, 0, 0, 0.18);
+}
+
+
+.report-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 15px;
+}
+
+
+.report-header span {
+  color: var(--green);
+
+  font-size: 12px;
+
+  font-weight: bold;
+
+  letter-spacing: 1px;
+}
+
+
+.report-header h2 {
+  margin: 5px 0 0;
+
+  font-size: 23px;
+}
+
+
+#reportDatePreview {
+  color: var(--green);
+
+  font-weight: bold;
+}
+
+
+#finalReport {
+  min-height: 600px;
+
+  resize: vertical;
+
+  background: #111111;
+
+  color: var(--white);
+
+  border:
+    1px solid #333333;
+
+  font-family:
+    Consolas,
+    "Courier New",
+    monospace;
+
+  line-height: 1.6;
+}
+
+
+.copy-btn {
+  width: 100%;
+
+  margin-top: 15px;
+
+  border: none;
+
+  background: var(--green);
+
+  color: var(--black);
+
+  padding: 15px;
+
+  border-radius: 10px;
+
+  font-weight: bold;
+
+  font-size: 15px;
+
+  cursor: pointer;
+}
+
+
+.copy-btn:hover {
+  background: var(--green-dark);
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1100px) {
 
   .plan-heading {
     display: none;
   }
 
-  .loss-row {
-    grid-template-columns: repeat(2, 1fr);
+  .plan-row {
+    grid-template-columns:
+      repeat(4, 1fr);
   }
 
-  .deduction-row {
-    grid-template-columns: 1fr 1fr auto;
+  .plan-row .remove-btn {
+    width: 100%;
   }
 
 }
+
+
+@media (max-width: 950px) {
+
+  .form-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+
+  .summary-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+
+  .plan-summary {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+
+  .plan-row {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+
+  .loss-row {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+
+  .deduction-row {
+    grid-template-columns:
+      1fr 1fr auto;
+  }
+
+}
+
 
 @media (max-width: 650px) {
 
@@ -469,49 +829,70 @@ textarea:focus {
     font-size: 25px;
   }
 
+
   .container {
     width: 94%;
   }
+
 
   .card {
     padding: 17px;
   }
 
+
   .form-grid {
     grid-template-columns: 1fr;
   }
 
+
   .summary-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns:
+      1fr 1fr;
   }
+
 
   .summary-card strong {
     font-size: 23px;
   }
 
+
   .plan-summary {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns:
+      1fr 1fr;
   }
+
 
   .quality-results {
     grid-template-columns: 1fr;
   }
 
+
   .dynamic-row {
-    grid-template-columns: 1fr !important;
+    grid-template-columns:
+      1fr !important;
   }
+
 
   .remove-btn {
     width: 100%;
   }
 
+
   .report-header {
     flex-direction: column;
+
     align-items: flex-start;
+
     gap: 10px;
   }
 
+
+  #finalReport {
+    min-height: 500px;
+  }
+
 }
+
 
 @media (max-width: 420px) {
 
@@ -520,8 +901,14 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
+
   .section-title h2 {
     font-size: 18px;
+  }
+
+
+  .top-header {
+    padding: 22px 15px;
   }
 
 }
