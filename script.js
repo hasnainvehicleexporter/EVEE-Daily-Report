@@ -1,892 +1,622 @@
-/* script.js */
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
-  // ---------- HELPERS ----------
-  function $(id) {
-    return document.getElementById(id);
-  }
+  // ============ HELPERS ============
+  function $(id) { return document.getElementById(id); }
 
-  function parseNum(val) {
-    const n = parseFloat(val);
+  function num(v) {
+    var n = parseFloat(v);
     return isNaN(n) ? 0 : n;
   }
 
-  function formatPct(val) {
-    return parseNum(val).toFixed(2) + '%';
+  function int(v) {
+    var n = parseInt(v, 10);
+    return isNaN(n) ? 0 : n;
   }
 
   function todayISO() {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return y + '-' + m + '-' + day;
+    var d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
   }
 
-  function escapeHtml(str) {
-    if (str === null || str === undefined) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+  function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  // ---------- STATE ----------
-  let deductionRows = [{ reason: 'Morning Assembly', minutes: 0 }];
-  let timeLossRows = [{ from: '', to: '', reason: '', minutes: 0 }];
-  let bikePlanRows = [{ model: '', color: '', planQty: 0, cycleTime: 0, requiredMinutes: 0, possibleBikes: 0, balance: 0 }];
-  let completedBikeRows = [{ model: '', color: '', qty: 0 }];
-  let reworkBikeRows = [{ model: '', color: '', qty: 0 }];
-  let fgBikeRows = [{ model: '', color: '', qty: 0 }];
+  // ============ STATE ============
+  var deductions = [{ reason: 'Morning Assembly', minutes: 0 }];
+  var timeLosses = [{ from: '', to: '', reason: '', minutes: 0 }];
+  var bikePlans = [{ model: '', color: '', plan: 0, cycle: 0, required: 0, possible: 0, balance: 0 }];
+  var completed = [{ model: '', color: '', qty: 0 }];
+  var rework = [{ model: '', color: '', qty: 0 }];
+  var fg = [{ model: '', color: '', qty: 0 }];
 
-  // ---------- INIT DATE ----------
+  // ============ INIT ============
   $('reportDate').value = todayISO();
 
-  // ==================== RENDER: DEDUCTIONS ====================
+  // ============ RENDER DEDUCTIONS ============
   function renderDeductions() {
-    const tbody = $('deductionBody');
-    tbody.innerHTML = '';
-    deductionRows.forEach((row, idx) => {
-      const tr = document.createElement('tr');
+    var body = $('deductionBody');
+    body.innerHTML = '';
+    deductions.forEach(function (r, i) {
+      var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><input type="text" class="deduction-reason" data-idx="' + idx + '" value="' + escapeHtml(row.reason) + '" placeholder="Reason"></td>' +
-        '<td><input type="number" class="deduction-minutes" data-idx="' + idx + '" value="' + (row.minutes || 0) + '" min="0" step="1"></td>' +
-        '<td><button type="button" class="btn-remove remove-deduction" data-idx="' + idx + '">✕</button></td>';
-      tbody.appendChild(tr);
+        '<td><input type="text" data-i="' + i + '" data-k="reason" value="' + esc(r.reason) + '" placeholder="Reason"></td>' +
+        '<td><input type="number" data-i="' + i + '" data-k="minutes" value="' + num(r.minutes) + '" min="0"></td>' +
+        '<td><button type="button" class="btn-remove" data-del="ded">✕</button></td>';
+      body.appendChild(tr);
     });
-    tbody.querySelectorAll('.deduction-reason').forEach(function (inp) {
+    body.querySelectorAll('input').forEach(function (inp) {
       inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        deductionRows[i].reason = this.value;
+        var i = int(this.dataset.i);
+        var k = this.dataset.k;
+        deductions[i][k] = (k === 'minutes') ? num(this.value) : this.value;
         updateAll();
       });
     });
-    tbody.querySelectorAll('.deduction-minutes').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        deductionRows[i].minutes = parseNum(this.value);
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.remove-deduction').forEach(function (btn) {
+    body.querySelectorAll('[data-del]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        deductionRows.splice(i, 1);
+        var tr = this.closest('tr');
+        var idx = Array.from(body.children).indexOf(tr);
+        deductions.splice(idx, 1);
         renderDeductions();
         updateAll();
       });
     });
   }
 
-  // ==================== RENDER: TIME LOSS ====================
-  function renderTimeLoss() {
-    const tbody = $('timeLossBody');
-    tbody.innerHTML = '';
-    timeLossRows.forEach((row, idx) => {
-      const tr = document.createElement('tr');
+  // ============ RENDER TIME LOSS ============
+  function renderTimeLosses() {
+    var body = $('timeLossBody');
+    body.innerHTML = '';
+    timeLosses.forEach(function (r, i) {
+      var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><input type="time" class="tl-from" data-idx="' + idx + '" value="' + (row.from || '') + '"></td>' +
-        '<td><input type="time" class="tl-to" data-idx="' + idx + '" value="' + (row.to || '') + '"></td>' +
-        '<td><input type="text" class="tl-reason" data-idx="' + idx + '" value="' + escapeHtml(row.reason) + '" placeholder="Reason"></td>' +
-        '<td><input type="number" class="tl-minutes" data-idx="' + idx + '" value="' + (row.minutes || 0) + '" readonly></td>' +
-        '<td><button type="button" class="btn-remove remove-tl" data-idx="' + idx + '">✕</button></td>';
-      tbody.appendChild(tr);
+        '<td><input type="time" data-i="' + i + '" data-k="from" value="' + esc(r.from) + '"></td>' +
+        '<td><input type="time" data-i="' + i + '" data-k="to" value="' + esc(r.to) + '"></td>' +
+        '<td><input type="text" data-i="' + i + '" data-k="reason" value="' + esc(r.reason) + '" placeholder="Reason"></td>' +
+        '<td><input type="number" value="' + num(r.minutes) + '" readonly></td>' +
+        '<td><button type="button" class="btn-remove" data-del="tl">✕</button></td>';
+      body.appendChild(tr);
     });
-    tbody.querySelectorAll('.tl-from').forEach(function (inp) {
+    body.querySelectorAll('input:not([readonly])').forEach(function (inp) {
       inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        timeLossRows[i].from = this.value;
-        recalcTimeLossRow(i);
-        renderTimeLoss();
+        var i = int(this.dataset.i);
+        var k = this.dataset.k;
+        timeLosses[i][k] = this.value;
+        timeLosses[i].minutes = calcTL(timeLosses[i]);
+        renderTimeLosses();
         updateAll();
       });
     });
-    tbody.querySelectorAll('.tl-to').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        timeLossRows[i].to = this.value;
-        recalcTimeLossRow(i);
-        renderTimeLoss();
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.tl-reason').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        timeLossRows[i].reason = this.value;
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.remove-tl').forEach(function (btn) {
+    body.querySelectorAll('[data-del]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        timeLossRows.splice(i, 1);
-        renderTimeLoss();
+        var tr = this.closest('tr');
+        var idx = Array.from(body.children).indexOf(tr);
+        timeLosses.splice(idx, 1);
+        renderTimeLosses();
         updateAll();
       });
     });
   }
 
-  function recalcTimeLossRow(idx) {
-    const row = timeLossRows[idx];
-    if (!row || !row.from || !row.to) {
-      if (row) row.minutes = 0;
-      return;
-    }
-    const fp = row.from.split(':');
-    const tp = row.to.split(':');
-    const fh = parseInt(fp[0], 10) || 0;
-    const fm = parseInt(fp[1], 10) || 0;
-    const th = parseInt(tp[0], 10) || 0;
-    const tm = parseInt(tp[1], 10) || 0;
-    let fromMin = fh * 60 + fm;
-    let toMin = th * 60 + tm;
-    if (toMin < fromMin) toMin += 24 * 60;
-    row.minutes = toMin - fromMin;
+  function calcTL(r) {
+    if (!r.from || !r.to) return 0;
+    var f = r.from.split(':'), t = r.to.split(':');
+    var fm = int(f[0]) * 60 + int(f[1]);
+    var tm = int(t[0]) * 60 + int(t[1]);
+    if (tm < fm) tm += 1440;
+    return tm - fm;
   }
 
-  // ==================== RENDER: BIKE PLAN ====================
-  function renderBikePlan() {
-    const tbody = $('bikePlanBody');
-    tbody.innerHTML = '';
-    bikePlanRows.forEach(function (row, idx) {
-      const tr = document.createElement('tr');
+  // ============ RENDER BIKE PLAN ============
+  function renderBikePlans() {
+    var body = $('bikePlanBody');
+    body.innerHTML = '';
+    bikePlans.forEach(function (r, i) {
+      var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><input type="text" class="bp-model" data-idx="' + idx + '" value="' + escapeHtml(row.model) + '" placeholder="Model"></td>' +
-        '<td><input type="text" class="bp-color" data-idx="' + idx + '" value="' + escapeHtml(row.color) + '" placeholder="Color"></td>' +
-        '<td><input type="number" class="bp-plan" data-idx="' + idx + '" value="' + (row.planQty || 0) + '" min="0" step="1"></td>' +
-        '<td><input type="number" class="bp-cycle" data-idx="' + idx + '" value="' + (row.cycleTime || 0) + '" min="0" step="0.1"></td>' +
-        '<td><input type="number" class="bp-required" data-idx="' + idx + '" value="' + (row.requiredMinutes || 0) + '" readonly></td>' +
-        '<td><input type="number" class="bp-possible" data-idx="' + idx + '" value="' + (row.possibleBikes || 0) + '" readonly></td>' +
-        '<td><input type="number" class="bp-balance" data-idx="' + idx + '" value="' + (row.balance || 0) + '" readonly></td>' +
-        '<td><button type="button" class="btn-remove remove-bp" data-idx="' + idx + '">✕</button></td>';
-      tbody.appendChild(tr);
+        '<td><input type="text" data-i="' + i + '" data-k="model" value="' + esc(r.model) + '" placeholder="Model"></td>' +
+        '<td><input type="text" data-i="' + i + '" data-k="color" value="' + esc(r.color) + '" placeholder="Color"></td>' +
+        '<td><input type="number" data-i="' + i + '" data-k="plan" value="' + num(r.plan) + '" min="0"></td>' +
+        '<td><input type="number" data-i="' + i + '" data-k="cycle" value="' + num(r.cycle) + '" min="0" step="0.1"></td>' +
+        '<td><input type="number" value="' + num(r.required) + '" readonly></td>' +
+        '<td><input type="number" value="' + num(r.possible) + '" readonly></td>' +
+        '<td><input type="number" value="' + num(r.balance) + '" readonly></td>' +
+        '<td><button type="button" class="btn-remove" data-del="bp">✕</button></td>';
+      body.appendChild(tr);
     });
-    tbody.querySelectorAll('.bp-model').forEach(function (inp) {
+    body.querySelectorAll('input').forEach(function (inp) {
       inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        bikePlanRows[i].model = this.value;
+        var i = int(this.dataset.i);
+        var k = this.dataset.k;
+        if (k === 'model' || k === 'color') bikePlans[i][k] = this.value;
+        else bikePlans[i][k] = num(this.value);
         updateAll();
       });
     });
-    tbody.querySelectorAll('.bp-color').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        bikePlanRows[i].color = this.value;
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.bp-plan').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        bikePlanRows[i].planQty = parseNum(this.value);
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.bp-cycle').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        bikePlanRows[i].cycleTime = parseNum(this.value);
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.remove-bp').forEach(function (btn) {
+    body.querySelectorAll('[data-del]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        bikePlanRows.splice(i, 1);
-        renderBikePlan();
+        var tr = this.closest('tr');
+        var idx = Array.from(body.children).indexOf(tr);
+        bikePlans.splice(idx, 1);
+        renderBikePlans();
         updateAll();
       });
     });
   }
 
-  // ==================== RENDER: COMPLETED BIKES ====================
-  function renderCompletedBikes() {
-    const tbody = $('completedBikesBody');
-    tbody.innerHTML = '';
-    completedBikeRows.forEach(function (row, idx) {
-      const tr = document.createElement('tr');
+  // ============ RENDER SIMPLE TABLES (completed/rework/fg) ============
+  function renderSimpleTable(bodyId, dataArr, renderFnName) {
+    var body = $(bodyId);
+    body.innerHTML = '';
+    dataArr.forEach(function (r, i) {
+      var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><input type="text" class="cb-model" data-idx="' + idx + '" value="' + escapeHtml(row.model) + '" placeholder="Model"></td>' +
-        '<td><input type="text" class="cb-color" data-idx="' + idx + '" value="' + escapeHtml(row.color) + '" placeholder="Color"></td>' +
-        '<td><input type="number" class="cb-qty" data-idx="' + idx + '" value="' + (row.qty || 0) + '" min="0" step="1"></td>' +
-        '<td><button type="button" class="btn-remove remove-cb" data-idx="' + idx + '">✕</button></td>';
-      tbody.appendChild(tr);
+        '<td><input type="text" data-i="' + i + '" data-k="model" value="' + esc(r.model) + '" placeholder="Model"></td>' +
+        '<td><input type="text" data-i="' + i + '" data-k="color" value="' + esc(r.color) + '" placeholder="Color"></td>' +
+        '<td><input type="number" data-i="' + i + '" data-k="qty" value="' + num(r.qty) + '" min="0"></td>' +
+        '<td><button type="button" class="btn-remove" data-del="x">✕</button></td>';
+      body.appendChild(tr);
     });
-    tbody.querySelectorAll('.cb-model').forEach(function (inp) {
+    body.querySelectorAll('input').forEach(function (inp) {
       inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        completedBikeRows[i].model = this.value;
+        var i = int(this.dataset.i);
+        var k = this.dataset.k;
+        if (k === 'qty') dataArr[i][k] = num(this.value);
+        else dataArr[i][k] = this.value;
         updateAll();
       });
     });
-    tbody.querySelectorAll('.cb-color').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        completedBikeRows[i].color = this.value;
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.cb-qty').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        completedBikeRows[i].qty = parseNum(this.value);
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.remove-cb').forEach(function (btn) {
+    body.querySelectorAll('[data-del]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        completedBikeRows.splice(i, 1);
-        renderCompletedBikes();
+        var tr = this.closest('tr');
+        var idx = Array.from(body.children).indexOf(tr);
+        dataArr.splice(idx, 1);
+        window[renderFnName]();
         updateAll();
       });
     });
   }
 
-  // ==================== RENDER: REWORK BIKES ====================
-  function renderReworkBikes() {
-    const tbody = $('reworkBikesBody');
-    tbody.innerHTML = '';
-    reworkBikeRows.forEach(function (row, idx) {
-      const tr = document.createElement('tr');
-      tr.innerHTML =
-        '<td><input type="text" class="rw-model" data-idx="' + idx + '" value="' + escapeHtml(row.model) + '" placeholder="Model"></td>' +
-        '<td><input type="text" class="rw-color" data-idx="' + idx + '" value="' + escapeHtml(row.color) + '" placeholder="Color"></td>' +
-        '<td><input type="number" class="rw-qty" data-idx="' + idx + '" value="' + (row.qty || 0) + '" min="0" step="1"></td>' +
-        '<td><button type="button" class="btn-remove remove-rw" data-idx="' + idx + '">✕</button></td>';
-      tbody.appendChild(tr);
-    });
-    tbody.querySelectorAll('.rw-model').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        reworkBikeRows[i].model = this.value;
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.rw-color').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        reworkBikeRows[i].color = this.value;
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.rw-qty').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        reworkBikeRows[i].qty = parseNum(this.value);
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.remove-rw').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        reworkBikeRows.splice(i, 1);
-        renderReworkBikes();
-        updateAll();
-      });
-    });
-  }
+  function renderCompleted() { renderSimpleTable('completedBody', completed, 'renderCompleted'); }
+  function renderRework()    { renderSimpleTable('reworkBody', rework, 'renderRework'); }
+  function renderFg()        { renderSimpleTable('fgBody', fg, 'renderFg'); }
 
-  // ==================== RENDER: FG BIKES ====================
-  function renderFgBikes() {
-    const tbody = $('fgBikesBody');
-    tbody.innerHTML = '';
-    fgBikeRows.forEach(function (row, idx) {
-      const tr = document.createElement('tr');
-      tr.innerHTML =
-        '<td><input type="text" class="fg-model" data-idx="' + idx + '" value="' + escapeHtml(row.model) + '" placeholder="Model"></td>' +
-        '<td><input type="text" class="fg-color" data-idx="' + idx + '" value="' + escapeHtml(row.color) + '" placeholder="Color"></td>' +
-        '<td><input type="number" class="fg-qty" data-idx="' + idx + '" value="' + (row.qty || 0) + '" min="0" step="1"></td>' +
-        '<td><button type="button" class="btn-remove remove-fg" data-idx="' + idx + '">✕</button></td>';
-      tbody.appendChild(tr);
-    });
-    tbody.querySelectorAll('.fg-model').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        fgBikeRows[i].model = this.value;
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.fg-color').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        fgBikeRows[i].color = this.value;
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.fg-qty').forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        fgBikeRows[i].qty = parseNum(this.value);
-        updateAll();
-      });
-    });
-    tbody.querySelectorAll('.remove-fg').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        const i = parseInt(this.dataset.idx, 10);
-        fgBikeRows.splice(i, 1);
-        renderFgBikes();
-        updateAll();
-      });
-    });
-  }
-
-  // ==================== CALCULATIONS ====================
+  // ============ CALCULATIONS ============
   function calcManpower() {
-    const total = parseNum($('totalWorkers').value);
-    const absent = parseNum($('absentWorkers').value);
-    let present = total - absent;
+    var total = num($('totalWorkers').value);
+    var absent = num($('absentWorkers').value);
+    var present = total - absent;
     if (present < 0) present = 0;
     $('presentWorkers').value = present;
-    const pct = total > 0 ? (present / total) * 100 : 0;
-    $('presentWorkerPct').value = formatPct(pct);
-    $('summaryTotalWorkers').textContent = total;
-    $('summaryPresentWorkers').textContent = present;
-    return { total: total, present: present };
+    var pct = total > 0 ? (present / total) * 100 : 0;
+    $('presentWorkerPct').value = pct.toFixed(2) + '%';
+    $('sumTotalWorkers').textContent = total;
+    $('sumPresentWorkers').textContent = present;
   }
 
-  function calcShiftTime() {
-    const sh = parseNum($('shiftHours').value);
-    const sm = parseNum($('shiftMinutes').value);
-    const totalShift = sh * 60 + sm;
+  function calcShift() {
+    var sh = num($('shiftHours').value);
+    var sm = num($('shiftMinutes').value);
+    var totalShift = sh * 60 + sm;
 
-    let totalDeductions = 0;
-    deductionRows.forEach(function (r) { totalDeductions += parseNum(r.minutes); });
-    $('normalDeductionsTotal').value = totalDeductions;
+    var dedSum = 0;
+    deductions.forEach(function (r) { dedSum += num(r.minutes); });
+    $('normalDeductionsTotal').value = dedSum;
 
-    let totalTimeLoss = 0;
-    timeLossRows.forEach(function (r) { totalTimeLoss += parseNum(r.minutes); });
-    $('timeLossTotal').value = totalTimeLoss;
+    var tlSum = 0;
+    timeLosses.forEach(function (r) { tlSum += num(r.minutes); });
+    $('timeLossTotal').value = tlSum;
 
-    let finalMin = totalShift - totalDeductions - totalTimeLoss;
+    var finalMin = totalShift - dedSum - tlSum;
     if (finalMin < 0) finalMin = 0;
     $('finalProductionMinutes').value = finalMin;
-    $('summaryProductionMinutes').textContent = finalMin;
+    $('sumProductionMinutes').textContent = finalMin;
     return finalMin;
   }
 
-  function calcBikePlan(availableMinutes) {
-    let remaining = availableMinutes;
-    let totalPlanned = 0;
-    let totalRequired = 0;
+  function calcBikePlans(available) {
+    var remaining = available;
+    var totalPlanned = 0;
+    var totalRequired = 0;
+    var totalPossible = 0;
 
-    bikePlanRows.forEach(function (row) {
-      const plan = parseNum(row.planQty);
-      const cycle = parseNum(row.cycleTime);
-      const required = plan * cycle;
-      row.requiredMinutes = required;
+    bikePlans.forEach(function (r) {
+      var plan = num(r.plan);
+      var cycle = num(r.cycle);
+      var required = plan * cycle;
+      r.required = required;
       totalPlanned += plan;
       totalRequired += required;
 
-      let possible = 0;
+      var possible = 0;
       if (cycle > 0) {
         possible = Math.floor(remaining / cycle);
         if (possible > plan) possible = plan;
         if (possible < 0) possible = 0;
       }
-      row.possibleBikes = possible;
-      row.balance = possible - plan;
+      r.possible = possible;
+      r.balance = possible - plan;
+      totalPossible += possible;
 
-      const used = possible * cycle;
-      remaining -= used;
+      remaining -= (possible * cycle);
       if (remaining < 0) remaining = 0;
     });
 
-    // Update readonly fields in DOM
-    const tbody = $('bikePlanBody');
-    tbody.querySelectorAll('.bp-required').forEach(function (inp) {
-      const i = parseInt(inp.dataset.idx, 10);
-      if (bikePlanRows[i]) inp.value = bikePlanRows[i].requiredMinutes || 0;
-    });
-    tbody.querySelectorAll('.bp-possible').forEach(function (inp) {
-      const i = parseInt(inp.dataset.idx, 10);
-      if (bikePlanRows[i]) inp.value = bikePlanRows[i].possibleBikes || 0;
-    });
-    tbody.querySelectorAll('.bp-balance').forEach(function (inp) {
-      const i = parseInt(inp.dataset.idx, 10);
-      if (bikePlanRows[i]) inp.value = bikePlanRows[i].balance || 0;
+    // update readonly cells
+    var body = $('bikePlanBody');
+    Array.from(body.children).forEach(function (tr, i) {
+      var inputs = tr.querySelectorAll('input');
+      if (inputs.length >= 7) {
+        inputs[4].value = num(bikePlans[i].required);
+        inputs[5].value = num(bikePlans[i].possible);
+        inputs[6].value = num(bikePlans[i].balance);
+      }
     });
 
-    $('totalPlannedBikes').textContent = totalPlanned;
-    $('totalRequiredMinutes').textContent = totalRequired;
-    $('availableProductionMinutes').textContent = availableMinutes;
-    $('remainingMinutes').textContent = remaining;
+    $('planTotalPlanned').textContent = totalPlanned;
+    $('planTotalRequired').textContent = totalRequired;
+    $('planAvailable').textContent = available;
+    $('planRemaining').textContent = remaining;
 
-    const shortfall = totalPlanned - totalPlanned + (totalPlanned - (totalPlanned - (totalPlanned - (totalRequired > availableMinutes ? totalPlanned - Math.floor(availableMinutes / (bikePlanRows.length ? 1 : 1)) : 0))));
-    // Simpler: compute total possible vs total planned
-    let totalPossible = 0;
-    bikePlanRows.forEach(function (r) { totalPossible += (r.possibleBikes || 0); });
-    const statusEl = $('bikePlanStatus');
+    var statusEl = $('planStatus');
     if (totalPossible >= totalPlanned) {
       statusEl.textContent = 'CAN BE COMPLETED';
-      statusEl.className = 'summary-item-value status-success';
+      statusEl.className = 'status-ok';
     } else {
-      const short = totalPlanned - totalPossible;
+      var short = totalPlanned - totalPossible;
       statusEl.textContent = 'SHORT ' + short + ' BIKES';
-      statusEl.className = 'summary-item-value status-fail';
+      statusEl.className = 'status-fail';
     }
 
     return { totalPlanned: totalPlanned, totalRequired: totalRequired, remaining: remaining, totalPossible: totalPossible };
   }
 
-  function calcCompletedBikes() {
-    let total = 0;
-    completedBikeRows.forEach(function (r) { total += parseNum(r.qty); });
-    $('totalCompletedBikes').textContent = total;
-    $('summaryCompletedBikes').textContent = total;
-    return total;
+  function calcTotals() {
+    var c = 0, r = 0, f = 0;
+    completed.forEach(function (x) { c += num(x.qty); });
+    rework.forEach(function (x) { r += num(x.qty); });
+    fg.forEach(function (x) { f += num(x.qty); });
+    $('totalCompleted').textContent = c;
+    $('totalRework').textContent = r;
+    $('totalFg').textContent = f;
+    $('sumCompletedBikes').textContent = c;
+    return { c: c, r: r, f: f };
   }
 
-  function calcReworkBikes() {
-    let total = 0;
-    reworkBikeRows.forEach(function (r) { total += parseNum(r.qty); });
-    $('totalReworkBikes').textContent = total;
-    return total;
-  }
-
-  function calcFgBikes() {
-    let total = 0;
-    fgBikeRows.forEach(function (r) { total += parseNum(r.qty); });
-    $('totalFgBikes').textContent = total;
-    return total;
-  }
-
-  // ==================== MASTER UPDATE ====================
+  // ============ MASTER UPDATE ============
   function updateAll() {
     calcManpower();
-    const finalMin = calcShiftTime();
-    const planData = calcBikePlan(finalMin);
-    calcCompletedBikes();
-    calcReworkBikes();
-    calcFgBikes();
-    buildReport(planData);
+    var finalMin = calcShift();
+    var planData = calcBikePlans(finalMin);
+    var totals = calcTotals();
+    buildReport(planData, totals);
   }
 
-  // ==================== REPORT BUILDER ====================
-  function buildReport(planData) {
-    planData = planData || { totalPlanned: 0, totalRequired: 0, remaining: 0, totalPossible: 0 };
+  // ============ REPORT ============
+  function buildReport(planData, totals) {
+    var dateVal = $('reportDate').value || todayISO();
+    var r = '';
+    r += '========================================\n';
+    r += '           EVEE DAILY REPORT\n';
+    r += '========================================\n';
+    r += 'Date: ' + dateVal + '\n\n';
 
-    const dateVal = $('reportDate').value || todayISO();
-    const totalWorkers = parseNum($('totalWorkers').value);
-    const absentWorkers = parseNum($('absentWorkers').value);
-    const presentWorkers = parseNum($('presentWorkers').value);
-    const presentPct = $('presentWorkerPct').value;
+    r += '--- MANPOWER ---\n';
+    r += 'Total Workers    : ' + num($('totalWorkers').value) + '\n';
+    r += 'Absent Workers   : ' + num($('absentWorkers').value) + '\n';
+    r += 'Present Workers  : ' + num($('presentWorkers').value) + '\n';
+    r += 'Present Worker % : ' + $('presentWorkerPct').value + '\n\n';
 
-    const shiftH = parseNum($('shiftHours').value);
-    const shiftM = parseNum($('shiftMinutes').value);
-    const shiftTotal = shiftH * 60 + shiftM;
-    const normalDed = parseNum($('normalDeductionsTotal').value);
-    const timeLoss = parseNum($('timeLossTotal').value);
-    const finalProd = parseNum($('finalProductionMinutes').value);
+    r += '--- SHIFT TIME ---\n';
+    r += 'Shift Time               : ' + num($('shiftHours').value) + 'h ' + num($('shiftMinutes').value) + 'm (' + (num($('shiftHours').value) * 60 + num($('shiftMinutes').value)) + ' min)\n';
+    r += 'Normal Deductions        : ' + num($('normalDeductionsTotal').value) + ' min\n';
+    r += 'Time Loss                : ' + num($('timeLossTotal').value) + ' min\n';
+    r += 'Final Production Minutes : ' + num($('finalProductionMinutes').value) + ' min\n\n';
 
-    let report = '';
-    report += '========================================\n';
-    report += '           EVEE DAILY REPORT\n';
-    report += '========================================\n';
-    report += 'Date: ' + dateVal + '\n\n';
-
-    // MANPOWER
-    report += '----------------------------------------\n';
-    report += 'MANPOWER\n';
-    report += '----------------------------------------\n';
-    report += 'Total Workers      : ' + totalWorkers + '\n';
-    report += 'Absent Workers     : ' + absentWorkers + '\n';
-    report += 'Present Workers    : ' + presentWorkers + '\n';
-    report += 'Present Worker %   : ' + presentPct + '\n\n';
-
-    // SHIFT TIME
-    report += '----------------------------------------\n';
-    report += 'SHIFT TIME\n';
-    report += '----------------------------------------\n';
-    report += 'Shift Time               : ' + shiftH + 'h ' + shiftM + 'm (' + shiftTotal + ' min)\n';
-    report += 'Normal Deductions        : ' + normalDed + ' min\n';
-    report += 'Time Loss                : ' + timeLoss + ' min\n';
-    report += 'Final Production Minutes : ' + finalProd + ' min\n\n';
-
-    // BIKE PLAN
-    report += '----------------------------------------\n';
-    report += 'BIKE PLAN\n';
-    report += '----------------------------------------\n';
-    report += 'Model | Color | Plan Qty | Cycle Time | Required Minutes | Possible Bikes | Balance\n';
-    bikePlanRows.forEach(function (r) {
-      report += (r.model || '-') + ' | ' + (r.color || '-') + ' | ' + (r.planQty || 0) + ' | ' +
-        (r.cycleTime || 0) + ' | ' + (r.requiredMinutes || 0) + ' | ' + (r.possibleBikes || 0) + ' | ' +
-        (r.balance || 0) + '\n';
+    r += '--- BIKE PLAN ---\n';
+    r += 'Model | Color | Plan Qty | Cycle Time | Required Minutes | Possible Bikes | Balance\n';
+    bikePlans.forEach(function (b) {
+      r += (b.model || '-') + ' | ' + (b.color || '-') + ' | ' + num(b.plan) + ' | ' + num(b.cycle) + ' | ' + num(b.required) + ' | ' + num(b.possible) + ' | ' + num(b.balance) + '\n';
     });
-    report += '\n';
-    report += 'Total Planned Bikes     : ' + planData.totalPlanned + '\n';
-    report += 'Total Required Minutes  : ' + planData.totalRequired + '\n';
-    report += 'Available Production Min: ' + finalProd + '\n';
-    report += 'Remaining Minutes       : ' + planData.remaining + '\n';
-    report += 'Status                  : ' + $('bikePlanStatus').textContent + '\n\n';
+    r += '\nTotal Planned Bikes    : ' + planData.totalPlanned + '\n';
+    r += 'Total Required Minutes : ' + planData.totalRequired + '\n';
+    r += 'Available Production   : ' + num($('finalProductionMinutes').value) + ' min\n';
+    r += 'Remaining Minutes      : ' + planData.remaining + '\n';
+    r += 'Status                 : ' + $('planStatus').textContent + '\n\n';
 
-    // COMPLETED BIKES
-    report += '----------------------------------------\n';
-    report += 'COMPLETED BIKES\n';
-    report += '----------------------------------------\n';
-    report += 'Model | Color | Quantity\n';
-    completedBikeRows.forEach(function (r) {
-      report += (r.model || '-') + ' | ' + (r.color || '-') + ' | ' + (r.qty || 0) + '\n';
-    });
-    report += 'Total Completed Bikes   : ' + parseNum($('totalCompletedBikes').textContent) + '\n\n';
+    r += '--- COMPLETED BIKES ---\n';
+    r += 'Model | Color | Quantity\n';
+    completed.forEach(function (b) { r += (b.model || '-') + ' | ' + (b.color || '-') + ' | ' + num(b.qty) + '\n'; });
+    r += 'Total Completed Bikes : ' + totals.c + '\n\n';
 
-    // QUALITY
-    report += '----------------------------------------\n';
-    report += 'QUALITY\n';
-    report += '----------------------------------------\n';
-    report += 'Assembly Line SPR     : ' + parseNum($('sprPercentage').value) + ' %\n';
-    report += 'Quality FG Bikes      : ' + parseNum($('qualityFgBikes').value) + '\n\n';
+    r += '--- QUALITY ---\n';
+    r += 'Assembly Line SPR : ' + num($('sprPercent').value).toFixed(2) + ' %\n';
+    r += 'Quality FG Bikes  : ' + num($('qualityFg').value) + '\n\n';
 
-    // REWORK
-    report += '----------------------------------------\n';
-    report += 'REWORK BIKES\n';
-    report += '----------------------------------------\n';
-    report += 'Model | Color | Quantity\n';
-    reworkBikeRows.forEach(function (r) {
-      report += (r.model || '-') + ' | ' + (r.color || '-') + ' | ' + (r.qty || 0) + '\n';
-    });
-    report += 'Total Rework Bikes    : ' + parseNum($('totalReworkBikes').textContent) + '\n\n';
+    r += '--- REWORK BIKES ---\n';
+    r += 'Model | Color | Quantity\n';
+    rework.forEach(function (b) { r += (b.model || '-') + ' | ' + (b.color || '-') + ' | ' + num(b.qty) + '\n'; });
+    r += 'Total Rework Bikes : ' + totals.r + '\n\n';
 
-    // FG
-    report += '----------------------------------------\n';
-    report += 'FG (FINISHED GOODS)\n';
-    report += '----------------------------------------\n';
-    report += 'Model | Color | Quantity\n';
-    fgBikeRows.forEach(function (r) {
-      report += (r.model || '-') + ' | ' + (r.color || '-') + ' | ' + (r.qty || 0) + '\n';
-    });
-    report += 'Total FG Bikes        : ' + parseNum($('totalFgBikes').textContent) + '\n\n';
+    r += '--- FG (FINISHED GOODS) ---\n';
+    r += 'Model | Color | Quantity\n';
+    fg.forEach(function (b) { r += (b.model || '-') + ' | ' + (b.color || '-') + ' | ' + num(b.qty) + '\n'; });
+    r += 'Total FG Bikes : ' + totals.f + '\n\n';
 
-    // SUMMARY
-    report += '========================================\n';
-    report += 'SUMMARY\n';
-    report += '========================================\n';
-    report += 'Total Planned Bikes   : ' + planData.totalPlanned + '\n';
-    report += 'Total Completed Bikes : ' + parseNum($('totalCompletedBikes').textContent) + '\n';
-    report += 'Total Rework Bikes    : ' + parseNum($('totalReworkBikes').textContent) + '\n';
-    report += 'Total FG Bikes        : ' + parseNum($('totalFgBikes').textContent) + '\n';
-    report += '========================================\n';
+    r += '========================================\n';
+    r += 'SUMMARY\n';
+    r += '========================================\n';
+    r += 'Total Planned Bikes   : ' + planData.totalPlanned + '\n';
+    r += 'Total Completed Bikes : ' + totals.c + '\n';
+    r += 'Total Rework Bikes    : ' + totals.r + '\n';
+    r += 'Total FG Bikes        : ' + totals.f + '\n';
 
-    $('reportPreview').textContent = report;
+    $('reportPreview').textContent = r;
   }
 
-  // ==================== EVENT BINDINGS ====================
-  // Static inputs
-  ['totalWorkers', 'absentWorkers', 'shiftHours', 'shiftMinutes', 'sprPercentage',
-   'qualityFgBikes', 'reportDate'].forEach(function (id) {
-    const el = $(id);
-    if (el) el.addEventListener('input', updateAll);
-    if (el) el.addEventListener('change', updateAll);
+  // ============ EVENT BINDINGS ============
+  ['totalWorkers', 'absentWorkers', 'shiftHours', 'shiftMinutes', 'sprPercent', 'qualityFg', 'reportDate'].forEach(function (id) {
+    var el = $(id);
+    if (el) {
+      el.addEventListener('input', updateAll);
+      el.addEventListener('change', updateAll);
+    }
   });
 
-  // Add deduction
   $('addDeductionBtn').addEventListener('click', function () {
-    deductionRows.push({ reason: '', minutes: 0 });
+    deductions.push({ reason: '', minutes: 0 });
     renderDeductions();
     updateAll();
   });
 
-  // Add time loss
   $('addTimeLossBtn').addEventListener('click', function () {
-    timeLossRows.push({ from: '', to: '', reason: '', minutes: 0 });
-    renderTimeLoss();
+    timeLosses.push({ from: '', to: '', reason: '', minutes: 0 });
+    renderTimeLosses();
     updateAll();
   });
 
-  // Add bike plan
   $('addBikePlanBtn').addEventListener('click', function () {
-    bikePlanRows.push({ model: '', color: '', planQty: 0, cycleTime: 0, requiredMinutes: 0, possibleBikes: 0, balance: 0 });
-    renderBikePlan();
+    bikePlans.push({ model: '', color: '', plan: 0, cycle: 0, required: 0, possible: 0, balance: 0 });
+    renderBikePlans();
     updateAll();
   });
 
-  // Add completed bike
-  $('addCompletedBikeBtn').addEventListener('click', function () {
-    completedBikeRows.push({ model: '', color: '', qty: 0 });
-    renderCompletedBikes();
+  $('addCompletedBtn').addEventListener('click', function () {
+    completed.push({ model: '', color: '', qty: 0 });
+    renderCompleted();
     updateAll();
   });
 
-  // Add rework bike
-  $('addReworkBikeBtn').addEventListener('click', function () {
-    reworkBikeRows.push({ model: '', color: '', qty: 0 });
-    renderReworkBikes();
+  $('addReworkBtn').addEventListener('click', function () {
+    rework.push({ model: '', color: '', qty: 0 });
+    renderRework();
     updateAll();
   });
 
-  // Add FG bike
-  $('addFgBikeBtn').addEventListener('click', function () {
-    fgBikeRows.push({ model: '', color: '', qty: 0 });
-    renderFgBikes();
+  $('addFgBtn').addEventListener('click', function () {
+    fg.push({ model: '', color: '', qty: 0 });
+    renderFg();
     updateAll();
   });
 
-  // Copy report
-  $('copyReportBtn').addEventListener('click', function () {
-    const text = $('reportPreview').textContent;
+  // COPY
+  $('copyBtn').addEventListener('click', function () {
+    var text = $('reportPreview').textContent;
+    function showOk() {
+      var m = $('copyMsg');
+      m.style.display = 'block';
+      setTimeout(function () { m.style.display = 'none'; }, 2000);
+    }
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () {
-        showCopySuccess();
-      }).catch(function () {
-        fallbackCopy(text);
-      });
+      navigator.clipboard.writeText(text).then(showOk).catch(function () { fallbackCopy(text, showOk); });
     } else {
-      fallbackCopy(text);
+      fallbackCopy(text, showOk);
     }
   });
 
-  function fallbackCopy(text) {
-    const ta = document.createElement('textarea');
+  function fallbackCopy(text, cb) {
+    var ta = document.createElement('textarea');
     ta.value = text;
     ta.style.position = 'fixed';
-    ta.style.opacity = '0';
+    ta.style.left = '-9999px';
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); showCopySuccess(); } catch (e) { alert('Copy failed.'); }
+    try { document.execCommand('copy'); cb(); }
+    catch (e) { alert('Copy failed'); }
     document.body.removeChild(ta);
   }
 
-  function showCopySuccess() {
-    const msg = $('copySuccessMsg');
-    msg.style.display = 'block';
-    setTimeout(function () { msg.style.display = 'none'; }, 2200);
-  }
+  // PDF
+  $('pdfBtn').addEventListener('click', function () {
+    var jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDFCtor) { alert('PDF library not loaded'); return; }
 
-  // Download PDF
-  $('downloadPdfBtn').addEventListener('click', function () {
-    generatePdf();
-  });
+    var doc = new jsPDFCtor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    var pw = doc.internal.pageSize.getWidth();
+    var ph = doc.internal.pageSize.getHeight();
+    var m = 14;
+    var cw = pw - m * 2;
+    var y = 0;
+    var pageNum = 1;
+    var dateVal = $('reportDate').value || todayISO();
 
-  // ==================== PDF GENERATION ====================
-  function generatePdf() {
-    const { jsPDF } = window.jspdf;
-    if (!jsPDF) {
-      alert('PDF library not loaded. Please check your internet connection.');
-      return;
+    function newPage() {
+      addFooter();
+      doc.addPage();
+      pageNum++;
+      drawHeader();
+      y = 20;
     }
+    function check(need) { if (y + need > ph - m - 6) newPage(); }
 
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    const margin = 14;
-    const contentW = pageW - margin * 2;
-    let y = margin;
-    let pageNum = 1;
-
-    const BLACK = [0, 0, 0];
-    const GREEN = [114, 198, 83];
-    const LIGHT_GREEN = [156, 227, 125];
-    const GRAY = [245, 245, 245];
-    const DARK_GRAY = [80, 80, 80];
-
-    function addPageIfNeeded(needed) {
-      if (y + needed > pageH - margin - 8) {
-        addFooter();
-        doc.addPage();
-        pageNum++;
-        y = margin;
-        drawPageHeader();
-      }
-    }
-
-    function drawPageHeader() {
-      doc.setFillColor(BLACK[0], BLACK[1], BLACK[2]);
-      doc.rect(0, 0, pageW, 12, 'F');
-      doc.setTextColor(LIGHT_GREEN[0], LIGHT_GREEN[1], LIGHT_GREEN[2]);
+    function drawHeader() {
+      doc.setFillColor(0, 0, 0);
+      doc.rect(0, 0, pw, 12, 'F');
+      doc.setTextColor(156, 227, 125);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.text('EVEE Daily Report', margin, 8);
+      doc.setFontSize(10);
+      doc.text('EVEE Daily Report', m, 8);
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      const dateVal = $('reportDate').value || todayISO();
-      doc.text('Date: ' + dateVal, pageW - margin, 8, { align: 'right' });
-      y = 18;
+      doc.text('Date: ' + dateVal, pw - m, 8, { align: 'right' });
     }
 
     function addFooter() {
-      doc.setDrawColor(GREEN[0], GREEN[1], GREEN[2]);
+      doc.setDrawColor(114, 198, 83);
       doc.setLineWidth(0.4);
-      doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
+      doc.line(m, ph - 12, pw - m, ph - 12);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(DARK_GRAY[0], DARK_GRAY[1], DARK_GRAY[2]);
-      doc.text('EVEE Daily Report', margin, pageH - 7);
-      doc.text('Page ' + pageNum, pageW - margin, pageH - 7, { align: 'right' });
+      doc.setTextColor(90, 90, 90);
+      doc.text('EVEE Daily Report', m, ph - 7);
+      doc.text('Page ' + pageNum, pw - m, ph - 7, { align: 'right' });
     }
 
-    function sectionTitle(title) {
-      addPageIfNeeded(12);
-      doc.setFillColor(GREEN[0], GREEN[1], GREEN[2]);
-      doc.rect(margin, y, contentW, 7, 'F');
+    function section(t) {
+      check(12);
+      doc.setFillColor(114, 198, 83);
+      doc.rect(m, y, cw, 7, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
-      doc.text(title, margin + 3, y + 5);
-      y += 10;
+      doc.text(t, m + 3, y + 5);
+      y += 11;
     }
 
-    function textLine(label, value) {
-      addPageIfNeeded(6);
+    function line(label, value) {
+      check(6);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      doc.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-      doc.text(String(label), margin + 2, y);
+      doc.setTextColor(0, 0, 0);
+      doc.text(String(label), m + 2, y);
       doc.setFont('helvetica', 'bold');
-      doc.text(String(value), margin + 70, y);
+      doc.text(String(value), m + 75, y);
       y += 5.5;
     }
 
-    function tableHeader(cols, widths) {
-      addPageIfNeeded(8);
-      doc.setFillColor(GRAY[0], GRAY[1], GRAY[2]);
-      doc.rect(margin, y - 4, contentW, 6.5, 'F');
+    function tableHead(cols, widths) {
+      check(8);
+      doc.setFillColor(240, 240, 240);
+      doc.rect(m, y - 4, cw, 6.5, 'F');
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
-      doc.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-      let x = margin + 1.5;
-      cols.forEach(function (c, i) {
-        doc.text(c, x, y);
-        x += widths[i];
-      });
-      y += 5;
+      doc.setTextColor(0, 0, 0);
+      var x = m + 2;
+      cols.forEach(function (c, i) { doc.text(c, x, y); x += widths[i]; });
+      y += 5.5;
     }
 
     function tableRow(cols, widths) {
-      addPageIfNeeded(6);
+      check(6);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-      let x = margin + 1.5;
+      doc.setTextColor(0, 0, 0);
+      var x = m + 2;
       cols.forEach(function (c, i) {
-        let text = String(c);
-        // Basic truncation to avoid overflow
-        const maxChars = Math.floor(widths[i] / 1.8);
-        if (text.length > maxChars) text = text.substring(0, maxChars - 1) + '…';
-        doc.text(text, x, y);
+        var t = String(c);
+        var maxC = Math.floor(widths[i] / 1.8);
+        if (t.length > maxC) t = t.substring(0, maxC - 1) + '…';
+        doc.text(t, x, y);
         x += widths[i];
       });
       y += 5;
     }
 
-    // ---------- BUILD PDF ----------
-    drawPageHeader();
+    // ---- CONTENT ----
+    drawHeader();
+    y = 20;
 
-    // Title block
-    doc.setFillColor(BLACK[0], BLACK[1], BLACK[2]);
-    doc.rect(margin, y, contentW, 14, 'F');
-    doc.setTextColor(LIGHT_GREEN[0], LIGHT_GREEN[1], LIGHT_GREEN[2]);
+    doc.setFillColor(0, 0, 0);
+    doc.rect(m, y, cw, 14, 'F');
+    doc.setTextColor(156, 227, 125);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('EVEE DAILY REPORT', pageW / 2, y + 9, { align: 'center' });
+    doc.text('EVEE DAILY REPORT', pw / 2, y + 9, { align: 'center' });
     y += 20;
 
-    const dateVal = $('reportDate').value || todayISO();
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-    doc.text('Date: ' + dateVal, margin + 2, y);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Date: ' + dateVal, m + 2, y);
     y += 8;
 
-    // MANPOWER
-    sectionTitle('MANPOWER');
-    textLine('Total Workers', parseNum($('totalWorkers').value));
-    textLine('Absent Workers', parseNum($('absentWorkers').value));
-    textLine('Present Workers', parseNum($('presentWorkers').value));
-    textLine('Present Worker %', $('presentWorkerPct').value);
+    section('MANPOWER');
+    line('Total Workers', num($('totalWorkers').value));
+    line('Absent Workers', num($('absentWorkers').value));
+    line('Present Workers', num($('presentWorkers').value));
+    line('Present Worker %', $('presentWorkerPct').value);
     y += 3;
 
-    // SHIFT TIME
-    sectionTitle('SHIFT TIME');
-    const shiftH = parseNum($('shiftHours').value);
-    const shiftM = parseNum($('shiftMinutes').value);
-    textLine('Shift Time', shiftH + 'h ' + shiftM + 'm (' + (shiftH * 60 + shiftM) + ' min)');
-    textLine('Normal Deductions', parseNum($('normalDeductionsTotal').value) + ' min');
-    textLine('Time Loss', parseNum($('timeLossTotal').value) + ' min');
-    textLine('Final Production Minutes', parseNum($('finalProductionMinutes').value) + ' min');
+    section('SHIFT TIME');
+    line('Shift Time', num($('shiftHours').value) + 'h ' + num($('shiftMinutes').value) + 'm');
+    line('Normal Deductions', num($('normalDeductionsTotal').value) + ' min');
+    line('Time Loss', num($('timeLossTotal').value) + ' min');
+    line('Final Production Minutes', num($('finalProductionMinutes').value) + ' min');
     y += 3;
 
-    // BIKE PLAN
-    sectionTitle('BIKE PLAN');
-    const bpWidths = [30, 22, 18, 20, 25, 25, 20];
-    tableHeader(['Model', 'Color', 'Plan', 'Cycle', 'Required', 'Possible', 'Balance'], bpWidths);
-    bikePlanRows.forEach(function (r) {
-      tableRow([
-        r.model || '-',
-        r.color || '-',
-        r.planQty || 0,
-        r.cycleTime || 0,
-        r.requiredMinutes || 0,
-        r.possibleBikes || 0,
-        r.balance || 0
-      ], bpWidths);
+    section('BIKE PLAN');
+    var bpW = [30, 22, 18, 20, 25, 22, 20];
+    tableHead(['Model', 'Color', 'Plan', 'Cycle', 'Required', 'Possible', 'Balance'], bpW);
+    bikePlans.forEach(function (b) {
+      tableRow([b.model || '-', b.color || '-', num(b.plan), num(b.cycle), num(b.required), num(b.possible), num(b.balance)], bpW);
     });
     y += 2;
-    textLine('Total Planned Bikes', $('totalPlannedBikes').textContent);
-    textLine('Total Required Minutes', $('totalRequiredMinutes').textContent);
-    textLine('Available Production Minutes', $('availableProductionMinutes').textContent);
-    textLine('Remaining Minutes', $('remainingMinutes').textContent);
-    textLine('Status', $('bikePlanStatus').textContent);
-    y += 4;
-
-    // COMPLETED BIKES
-    sectionTitle('COMPLETED BIKES');
-    const cWidths = [60, 60, 40];
-    tableHeader(['Model', 'Color', 'Quantity'], cWidths);
-    completedBikeRows.forEach(function (r) {
-      tableRow([r.model || '-', r.color || '-', r.qty || 0], cWidths);
-    });
-    y += 2;
-    textLine('Total Completed Bikes', $('totalCompletedBikes').textContent);
-    y += 4;
-
-    // QUALITY
-    sectionTitle('QUALITY');
-    textLine('Assembly Line SPR', parseNum($('sprPercentage').value) + ' %');
-    textLine('Quality FG Bikes', parseNum($('qualityFgBikes').value));
+    line('Total Planned Bikes', $('planTotalPlanned').textContent);
+    line('Total Required Minutes', $('planTotalRequired').textContent);
+    line('Available Production Minutes', $('planAvailable').textContent);
+    line('Remaining Minutes', $('planRemaining').textContent);
+    line('Status', $('planStatus').textContent);
     y += 3;
 
-    // REWORK
-    sectionTitle('REWORK BIKES');
-    tableHeader(['Model', 'Color', 'Quantity'], cWidths);
-    reworkBikeRows.forEach(function (r) {
-      tableRow([r.model || '-', r.color || '-', r.qty || 0], cWidths);
-    });
+    section('COMPLETED BIKES');
+    var cW = [60, 60, 40];
+    tableHead(['Model', 'Color', 'Quantity'], cW);
+    completed.forEach(function (b) { tableRow([b.model || '-', b.color || '-', num(b.qty)], cW); });
     y += 2;
-    textLine('Total Rework Bikes', $('totalReworkBikes').textContent);
-    y += 4;
+    line('Total Completed Bikes', $('totalCompleted').textContent);
+    y += 3;
 
-    // FG
-    sectionTitle('FG (FINISHED GOODS)');
-    tableHeader(['Model', 'Color', 'Quantity'], cWidths);
-    fgBikeRows.forEach(function (r) {
-      tableRow([r.model || '-', r.color || '-', r.qty || 0], cWidths);
-    });
+    section('QUALITY');
+    line('Assembly Line SPR', num($('sprPercent').value).toFixed(2) + ' %');
+    line('Quality FG Bikes', num($('qualityFg').value));
+    y += 3;
+
+    section('REWORK BIKES');
+    tableHead(['Model', 'Color', 'Quantity'], cW);
+    rework.forEach(function (b) { tableRow([b.model || '-', b.color || '-', num(b.qty)], cW); });
     y += 2;
-    textLine('Total FG Bikes', $('totalFgBikes').textContent);
-    y += 4;
+    line('Total Rework Bikes', $('totalRework').textContent);
+    y += 3;
 
-    // SUMMARY
-    sectionTitle('SUMMARY');
-    textLine('Total Planned Bikes', $('totalPlannedBikes').textContent);
-    textLine('Total Completed Bikes', $('totalCompletedBikes').textContent);
-    textLine('Total Rework Bikes', $('totalReworkBikes').textContent);
-    textLine('Total FG Bikes', $('totalFgBikes').textContent);
+    section('FG (FINISHED GOODS)');
+    tableHead(['Model', 'Color', 'Quantity'], cW);
+    fg.forEach(function (b) { tableRow([b.model || '-', b.color || '-', num(b.qty)], cW); });
+    y += 2;
+    line('Total FG Bikes', $('totalFg').textContent);
+    y += 3;
+
+    section('SUMMARY');
+    line('Total Planned Bikes', $('planTotalPlanned').textContent);
+    line('Total Completed Bikes', $('totalCompleted').textContent);
+    line('Total Rework Bikes', $('totalRework').textContent);
+    line('Total FG Bikes', $('totalFg').textContent);
 
     addFooter();
+    doc.save('EVEE_Daily_Report_' + dateVal + '.pdf');
+  });
 
-    const filename = 'EVEE_Daily_Report_' + dateVal + '.pdf';
-    doc.save(filename);
-  }
-
-  // ==================== INITIAL RENDER ====================
+  // ============ INITIAL RENDER ============
   renderDeductions();
-  renderTimeLoss();
-  renderBikePlan();
-  renderCompletedBikes();
-  renderReworkBikes();
-  renderFgBikes();
+  renderTimeLosses();
+  renderBikePlans();
+  renderCompleted();
+  renderRework();
+  renderFg();
   updateAll();
 });
