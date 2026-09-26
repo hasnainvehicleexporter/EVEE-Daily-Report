@@ -1,23 +1,32 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   // =========================================================
-  // HELPER FUNCTIONS
+  // BASIC HELPERS
   // =========================================================
 
   const $ = (id) => document.getElementById(id);
 
+
   function getNumber(id) {
+
     const element = $(id);
 
-    if (!element) return 0;
+    if (!element) {
+      return 0;
+    }
 
-    const value = parseFloat(element.value);
+    const value =
+      parseFloat(element.value);
 
     return isNaN(value) ? 0 : value;
   }
 
+
   function formatNumber(number) {
-    if (!isFinite(number)) return "0";
+
+    if (!isFinite(number)) {
+      return "0";
+    }
 
     if (Number.isInteger(number)) {
       return number.toString();
@@ -28,24 +37,39 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/\.00$/, "");
   }
 
+
   function createRemoveButton() {
 
-    const button = document.createElement("button");
+    const button =
+      document.createElement("button");
 
     button.type = "button";
-    button.className = "remove-btn";
-    button.textContent = "Remove";
 
-    button.addEventListener("click", () => {
+    button.className =
+      "remove-btn";
 
-      const row = button.closest(".dynamic-row");
+    button.textContent =
+      "Remove";
 
-      if (row) {
-        row.remove();
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const row =
+          button.closest(
+            ".dynamic-row"
+          );
+
+        if (row) {
+          row.remove();
+        }
+
+        updateAll();
+
       }
+    );
 
-      updateAll();
-    });
 
     return button;
   }
@@ -57,30 +81,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setToday() {
 
-    const dateInput = $("reportDate");
+    const dateInput =
+      $("reportDate");
 
-    if (!dateInput) return;
+    if (!dateInput) {
+      return;
+    }
+
 
     if (!dateInput.value) {
 
-      const today = new Date();
+      const today =
+        new Date();
 
-      const year = today.getFullYear();
+      const year =
+        today.getFullYear();
 
       const month =
-        String(today.getMonth() + 1).padStart(2, "0");
+        String(
+          today.getMonth() + 1
+        ).padStart(2, "0");
 
       const day =
-        String(today.getDate()).padStart(2, "0");
+        String(
+          today.getDate()
+        ).padStart(2, "0");
+
 
       dateInput.value =
         `${year}-${month}-${day}`;
     }
+
   }
 
 
   // =========================================================
-  // NORMAL TIME DEDUCTIONS
+  // NORMAL DEDUCTIONS
   // =========================================================
 
   function addDeductionRow(
@@ -91,7 +127,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const container =
       $("deductionContainer");
 
-    if (!container) return;
+    if (!container) {
+      return;
+    }
+
 
     const row =
       document.createElement("div");
@@ -99,9 +138,11 @@ document.addEventListener("DOMContentLoaded", () => {
     row.className =
       "dynamic-row deduction-row";
 
+
     row.innerHTML = `
 
       <div>
+
         <div class="row-label">
           Reason
         </div>
@@ -112,9 +153,12 @@ document.addEventListener("DOMContentLoaded", () => {
           placeholder="Morning Assembly / Tea Break"
           value="${reason}"
         >
+
       </div>
 
+
       <div>
+
         <div class="row-label">
           Minutes
         </div>
@@ -127,15 +171,19 @@ document.addEventListener("DOMContentLoaded", () => {
           placeholder="Minutes"
           value="${minutes}"
         >
+
       </div>
 
     `;
+
 
     row.appendChild(
       createRemoveButton()
     );
 
+
     container.appendChild(row);
+
 
     row
       .querySelectorAll("input")
@@ -150,7 +198,9 @@ document.addEventListener("DOMContentLoaded", () => {
           "change",
           updateAll
         );
+
       });
+
   }
 
 
@@ -161,9 +211,11 @@ document.addEventListener("DOMContentLoaded", () => {
         ".deduction-row"
       );
 
+
     let total = 0;
 
     const data = [];
+
 
     rows.forEach(row => {
 
@@ -172,6 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ".deduction-reason"
         )?.value.trim() || "";
 
+
       const minutes =
         parseFloat(
           row.querySelector(
@@ -179,21 +232,30 @@ document.addEventListener("DOMContentLoaded", () => {
           )?.value
         ) || 0;
 
-      if (reason || minutes) {
+
+      if (
+        reason ||
+        minutes
+      ) {
 
         data.push({
           reason,
           minutes
         });
+
       }
 
+
       total += minutes;
+
     });
+
 
     return {
       total,
       data
     };
+
   }
 
 
@@ -210,36 +272,38 @@ document.addEventListener("DOMContentLoaded", () => {
       return 0;
     }
 
+
     const fromParts =
       from.split(":").map(Number);
 
     const toParts =
       to.split(":").map(Number);
 
-    const fromHour =
-      fromParts[0];
-
-    const fromMinute =
-      fromParts[1];
-
-    const toHour =
-      toParts[0];
-
-    const toMinute =
-      toParts[1];
 
     let fromTotal =
-      fromHour * 60 + fromMinute;
+      fromParts[0] * 60 +
+      fromParts[1];
+
 
     let toTotal =
-      toHour * 60 + toMinute;
+      toParts[0] * 60 +
+      toParts[1];
 
-    // Handles overnight time
+
+    // Overnight support
+
     if (toTotal < fromTotal) {
+
       toTotal += 1440;
+
     }
 
-    return toTotal - fromTotal;
+
+    return (
+      toTotal -
+      fromTotal
+    );
+
   }
 
 
@@ -248,7 +312,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const container =
       $("lossContainer");
 
-    if (!container) return;
+    if (!container) {
+      return;
+    }
+
 
     const row =
       document.createElement("div");
@@ -256,9 +323,11 @@ document.addEventListener("DOMContentLoaded", () => {
     row.className =
       "dynamic-row loss-row";
 
+
     row.innerHTML = `
 
       <div>
+
         <div class="row-label">
           From
         </div>
@@ -267,9 +336,12 @@ document.addEventListener("DOMContentLoaded", () => {
           type="time"
           class="loss-from"
         >
+
       </div>
 
+
       <div>
+
         <div class="row-label">
           To
         </div>
@@ -278,9 +350,12 @@ document.addEventListener("DOMContentLoaded", () => {
           type="time"
           class="loss-to"
         >
+
       </div>
 
+
       <div>
+
         <div class="row-label">
           Reason
         </div>
@@ -290,9 +365,12 @@ document.addEventListener("DOMContentLoaded", () => {
           class="loss-reason"
           placeholder="Machine breakdown / Material shortage"
         >
+
       </div>
 
+
       <div>
+
         <div class="row-label">
           Loss
         </div>
@@ -300,15 +378,19 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="calculated loss-minutes">
           0 min
         </div>
+
       </div>
 
     `;
+
 
     row.appendChild(
       createRemoveButton()
     );
 
+
     container.appendChild(row);
+
 
     row
       .querySelectorAll("input")
@@ -323,7 +405,9 @@ document.addEventListener("DOMContentLoaded", () => {
           "change",
           updateAll
         );
+
       });
+
   }
 
 
@@ -334,9 +418,11 @@ document.addEventListener("DOMContentLoaded", () => {
         ".loss-row"
       );
 
+
     let total = 0;
 
     const data = [];
+
 
     rows.forEach(row => {
 
@@ -345,15 +431,18 @@ document.addEventListener("DOMContentLoaded", () => {
           ".loss-from"
         )?.value || "";
 
+
       const to =
         row.querySelector(
           ".loss-to"
         )?.value || "";
 
+
       const reason =
         row.querySelector(
           ".loss-reason"
         )?.value.trim() || "";
+
 
       const minutes =
         calculateTimeDifference(
@@ -361,16 +450,20 @@ document.addEventListener("DOMContentLoaded", () => {
           to
         );
 
+
       const display =
         row.querySelector(
           ".loss-minutes"
         );
 
+
       if (display) {
 
         display.textContent =
           `${minutes} min`;
+
       }
+
 
       if (
         from ||
@@ -384,15 +477,20 @@ document.addEventListener("DOMContentLoaded", () => {
           reason,
           minutes
         });
+
       }
 
+
       total += minutes;
+
     });
+
 
     return {
       total,
       data
     };
+
   }
 
 
@@ -405,19 +503,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const container =
       $("planContainer");
 
-    if (!container) return;
+    if (!container) {
+      return;
+    }
+
 
     const row =
       document.createElement("div");
 
     row.className =
-      "dynamic-row bike-row plan-row";
+      "dynamic-row plan-row";
+
 
     row.innerHTML = `
 
       <!-- MODEL -->
 
       <div>
+
         <div class="row-label">
           Model
         </div>
@@ -427,12 +530,14 @@ document.addEventListener("DOMContentLoaded", () => {
           class="plan-model"
           placeholder="Model name"
         >
+
       </div>
 
 
       <!-- COLOR -->
 
       <div>
+
         <div class="row-label">
           Color
         </div>
@@ -442,14 +547,16 @@ document.addEventListener("DOMContentLoaded", () => {
           class="plan-color"
           placeholder="Color"
         >
+
       </div>
 
 
-      <!-- QUANTITY -->
+      <!-- PLAN QUANTITY -->
 
       <div>
+
         <div class="row-label">
-          Planned Qty
+          Plan Qty
         </div>
 
         <input
@@ -459,12 +566,14 @@ document.addEventListener("DOMContentLoaded", () => {
           step="1"
           placeholder="Qty"
         >
+
       </div>
 
 
       <!-- CYCLE TIME -->
 
       <div>
+
         <div class="row-label">
           Cycle Time
         </div>
@@ -476,25 +585,29 @@ document.addEventListener("DOMContentLoaded", () => {
           step="0.01"
           placeholder="Min / bike"
         >
+
       </div>
 
 
       <!-- REQUIRED MINUTES -->
 
       <div>
+
         <div class="row-label">
-          Required Minutes
+          Required Min
         </div>
 
         <div class="calculated plan-required">
           0 min
         </div>
+
       </div>
 
 
       <!-- POSSIBLE BIKES -->
 
       <div>
+
         <div class="row-label">
           Possible Bikes
         </div>
@@ -502,12 +615,14 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="calculated plan-capacity">
           0 bikes
         </div>
+
       </div>
 
 
       <!-- BALANCE -->
 
       <div>
+
         <div class="row-label">
           Balance
         </div>
@@ -515,15 +630,19 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="calculated plan-balance">
           0
         </div>
+
       </div>
 
     `;
+
 
     row.appendChild(
       createRemoveButton()
     );
 
+
     container.appendChild(row);
+
 
     row
       .querySelectorAll("input")
@@ -538,9 +657,38 @@ document.addEventListener("DOMContentLoaded", () => {
           "change",
           updateAll
         );
+
       });
+
   }
 
+
+  /*
+   * IMPORTANT:
+   *
+   * The available production minutes are shared
+   * between planned models.
+   *
+   * Example:
+   *
+   * Available = 240 min
+   *
+   * Model A:
+   * Plan = 20
+   * Cycle = 8
+   * Required = 160 min
+   * Possible = 20
+   *
+   * Remaining = 80 min
+   *
+   * Model B:
+   * Cycle = 10
+   * Possible = 8
+   *
+   * Remaining = 0
+   *
+   * This gives a realistic sequential production capacity.
+   */
 
   function getPlanData(
     finalMinutes
@@ -551,11 +699,22 @@ document.addEventListener("DOMContentLoaded", () => {
         ".plan-row"
       );
 
+
+    let remainingMinutes =
+      Math.max(
+        finalMinutes,
+        0
+      );
+
+
     let totalQty = 0;
 
     let totalRequiredMinutes = 0;
 
+    let totalPossibleBikes = 0;
+
     const data = [];
+
 
     rows.forEach(row => {
 
@@ -564,10 +723,12 @@ document.addEventListener("DOMContentLoaded", () => {
           ".plan-model"
         )?.value.trim() || "";
 
+
       const color =
         row.querySelector(
           ".plan-color"
         )?.value.trim() || "";
+
 
       const qty =
         parseFloat(
@@ -575,6 +736,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ".plan-qty"
           )?.value
         ) || 0;
+
 
       const cycle =
         parseFloat(
@@ -584,39 +746,79 @@ document.addEventListener("DOMContentLoaded", () => {
         ) || 0;
 
 
-      // Required minutes
+      // Required minutes for planned quantity
+
       const requiredMinutes =
         qty * cycle;
 
 
-      // Possible bikes
+      // Calculate possible bikes
+      // from the REMAINING minutes.
+
       let possibleBikes = 0;
 
-      if (cycle > 0) {
+      if (
+        cycle > 0 &&
+        remainingMinutes > 0
+      ) {
 
         possibleBikes =
           Math.floor(
-            finalMinutes / cycle
+            remainingMinutes /
+            cycle
+          );
+
+        /*
+         * Do not allow capacity to exceed
+         * the planned quantity.
+         */
+
+        possibleBikes =
+          Math.min(
+            possibleBikes,
+            qty
           );
       }
 
 
-      // Difference between capacity and plan
+      // Minutes actually allocated
+      // to this planned model.
+
+      const allocatedMinutes =
+        possibleBikes * cycle;
+
+
+      // Balance:
+      // positive = extra capacity
+      // negative = shortage
+
       const balance =
         possibleBikes - qty;
 
 
-      // Update display
+      // Remaining minutes after this model
+
+      remainingMinutes =
+        Math.max(
+          remainingMinutes -
+          allocatedMinutes,
+          0
+        );
+
+
+      // Update displays
 
       const requiredDisplay =
         row.querySelector(
           ".plan-required"
         );
 
+
       const capacityDisplay =
         row.querySelector(
           ".plan-capacity"
         );
+
 
       const balanceDisplay =
         row.querySelector(
@@ -627,14 +829,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (requiredDisplay) {
 
         requiredDisplay.textContent =
-          `${formatNumber(requiredMinutes)} min`;
+          `${formatNumber(
+            requiredMinutes
+          )} min`;
       }
 
 
       if (capacityDisplay) {
 
         capacityDisplay.textContent =
-          `${formatNumber(possibleBikes)} bikes`;
+          `${formatNumber(
+            possibleBikes
+          )} bikes`;
       }
 
 
@@ -643,17 +849,22 @@ document.addEventListener("DOMContentLoaded", () => {
         if (balance > 0) {
 
           balanceDisplay.textContent =
-            `+${formatNumber(balance)}`;
+            `+${formatNumber(
+              balance
+            )}`;
 
         } else {
 
           balanceDisplay.textContent =
-            formatNumber(balance);
+            formatNumber(
+              balance
+            );
         }
+
       }
 
 
-      // Save row
+      // Store row
 
       if (
         model ||
@@ -666,13 +877,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
           model,
           color,
+
           qty,
+
           cycle,
+
           requiredMinutes,
+
           possibleBikes,
+
+          allocatedMinutes,
+
           balance
 
         });
+
       }
 
 
@@ -680,6 +899,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       totalRequiredMinutes +=
         requiredMinutes;
+
+      totalPossibleBikes +=
+        possibleBikes;
 
     });
 
@@ -690,9 +912,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       totalQty,
 
-      totalRequiredMinutes
+      totalRequiredMinutes,
+
+      totalPossibleBikes,
+
+      remainingMinutes
 
     };
+
   }
 
 
@@ -708,17 +935,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const container =
       $(containerId);
 
-    if (!container) return;
+    if (!container) {
+      return;
+    }
+
 
     const row =
       document.createElement("div");
 
     row.className =
-      `dynamic-row bike-row simple-bike-row ${className}`;
+      `dynamic-row simple-bike-row ${className}`;
+
 
     row.innerHTML = `
 
       <div>
+
         <div class="row-label">
           Model
         </div>
@@ -728,9 +960,12 @@ document.addEventListener("DOMContentLoaded", () => {
           class="bike-model"
           placeholder="Model name"
         >
+
       </div>
 
+
       <div>
+
         <div class="row-label">
           Color
         </div>
@@ -740,9 +975,12 @@ document.addEventListener("DOMContentLoaded", () => {
           class="bike-color"
           placeholder="Color"
         >
+
       </div>
 
+
       <div>
+
         <div class="row-label">
           Qty
         </div>
@@ -754,15 +992,19 @@ document.addEventListener("DOMContentLoaded", () => {
           step="1"
           placeholder="Qty"
         >
+
       </div>
 
     `;
+
 
     row.appendChild(
       createRemoveButton()
     );
 
+
     container.appendChild(row);
+
 
     row
       .querySelectorAll("input")
@@ -777,7 +1019,9 @@ document.addEventListener("DOMContentLoaded", () => {
           "change",
           updateAll
         );
+
       });
+
   }
 
 
@@ -790,9 +1034,11 @@ document.addEventListener("DOMContentLoaded", () => {
         `#${containerId} .simple-bike-row`
       );
 
+
     const data = [];
 
     let total = 0;
+
 
     rows.forEach(row => {
 
@@ -801,10 +1047,12 @@ document.addEventListener("DOMContentLoaded", () => {
           ".bike-model"
         )?.value.trim() || "";
 
+
       const color =
         row.querySelector(
           ".bike-color"
         )?.value.trim() || "";
+
 
       const qty =
         parseFloat(
@@ -825,6 +1073,7 @@ document.addEventListener("DOMContentLoaded", () => {
           color,
           qty
         });
+
       }
 
 
@@ -837,11 +1086,12 @@ document.addEventListener("DOMContentLoaded", () => {
       data,
       total
     };
+
   }
 
 
   // =========================================================
-  // QUALITY DEPARTMENT
+  // QUALITY
   // =========================================================
 
   function updateQuality() {
@@ -850,6 +1100,7 @@ document.addEventListener("DOMContentLoaded", () => {
       getNumber(
         "sprPercentage"
       );
+
 
     const fg =
       getNumber(
@@ -860,15 +1111,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if ($("sprDisplay")) {
 
       $("sprDisplay").textContent =
-        `${formatNumber(spr)}%`;
+        `${formatNumber(
+          spr
+        )}%`;
+
     }
 
 
     if ($("qualityFgDisplay")) {
 
       $("qualityFgDisplay").textContent =
-        formatNumber(fg);
+        formatNumber(
+          fg
+        );
+
     }
+
   }
 
 
@@ -887,6 +1145,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "totalWorkers"
       );
 
+
     const absentWorkers =
       getNumber(
         "absentWorkers"
@@ -904,13 +1163,16 @@ document.addEventListener("DOMContentLoaded", () => {
     let presentPercentage = 0;
 
 
-    if (totalWorkers > 0) {
+    if (
+      totalWorkers > 0
+    ) {
 
       presentPercentage =
         (
           presentWorkers /
           totalWorkers
         ) * 100;
+
     }
 
 
@@ -920,6 +1182,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           presentWorkers
         );
+
     }
 
 
@@ -929,11 +1192,12 @@ document.addEventListener("DOMContentLoaded", () => {
         `${formatNumber(
           presentPercentage
         )}%`;
+
     }
 
 
     // =======================================================
-    // SHIFT TIME
+    // SHIFT
     // =======================================================
 
     const shiftHours =
@@ -952,11 +1216,12 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           shiftMinutes
         );
+
     }
 
 
     // =======================================================
-    // NORMAL DEDUCTIONS
+    // DEDUCTIONS
     // =======================================================
 
     const deductions =
@@ -985,6 +1250,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `${formatNumber(
           totalLoss
         )} min`;
+
     }
 
 
@@ -1003,6 +1269,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           totalDeductions
         );
+
     }
 
 
@@ -1024,6 +1291,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           finalMinutes
         );
+
     }
 
 
@@ -1043,6 +1311,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           plan.totalQty
         );
+
     }
 
 
@@ -1052,6 +1321,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           plan.totalRequiredMinutes
         );
+
     }
 
 
@@ -1061,6 +1331,17 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           finalMinutes
         );
+
+    }
+
+
+    if ($("planRemainingMinutes")) {
+
+      $("planRemainingMinutes").textContent =
+        formatNumber(
+          plan.remainingMinutes
+        );
+
     }
 
 
@@ -1078,15 +1359,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       if (
-        plan.totalRequiredMinutes === 0
+        plan.totalQty === 0
       ) {
 
         planStatus.textContent =
           "—";
 
       } else if (
-        plan.totalRequiredMinutes <=
-        finalMinutes
+        plan.totalPossibleBikes >=
+        plan.totalQty
       ) {
 
         planStatus.textContent =
@@ -1099,24 +1380,26 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
 
         const shortage =
-          plan.totalRequiredMinutes -
-          finalMinutes;
+          plan.totalQty -
+          plan.totalPossibleBikes;
 
 
         planStatus.textContent =
-          `SHORT BY ${formatNumber(
+          `SHORT ${formatNumber(
             shortage
-          )} MIN`;
+          )} BIKES`;
 
         planStatus.classList.add(
           "status-short"
         );
+
       }
+
     }
 
 
     // =======================================================
-    // COMPLETED BIKES
+    // COMPLETED
     // =======================================================
 
     const completed =
@@ -1131,6 +1414,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           completed.total
         );
+
     }
 
 
@@ -1150,6 +1434,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           rework.total
         );
+
     }
 
 
@@ -1169,6 +1454,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           fg.total
         );
+
     }
 
 
@@ -1189,6 +1475,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           totalWorkers
         );
+
     }
 
 
@@ -1198,6 +1485,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           presentWorkers
         );
+
     }
 
 
@@ -1207,6 +1495,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           finalMinutes
         );
+
     }
 
 
@@ -1216,6 +1505,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formatNumber(
           completed.total
         );
+
     }
 
 
@@ -1223,6 +1513,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       totalWorkers,
       absentWorkers,
+
       presentWorkers,
       presentPercentage,
 
@@ -1257,11 +1548,12 @@ document.addEventListener("DOMContentLoaded", () => {
         )
 
     };
+
   }
 
 
   // =========================================================
-  // BIKE LIST FORMAT
+  // FORMAT BIKE LIST
   // =========================================================
 
   function formatBikeList(
@@ -1274,6 +1566,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
 
       return "None";
+
     }
 
 
@@ -1283,6 +1576,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const model =
           item.model ||
           "N/A";
+
 
         const color =
           item.color ||
@@ -1299,11 +1593,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       })
       .join("\n");
+
   }
 
 
   // =========================================================
-  // PLAN LIST FORMAT
+  // FORMAT PLAN LIST
   // =========================================================
 
   function formatPlanList(
@@ -1316,6 +1611,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
 
       return "None";
+
     }
 
 
@@ -1326,19 +1622,32 @@ document.addEventListener("DOMContentLoaded", () => {
           item.model ||
           "N/A";
 
+
         const color =
           item.color ||
           "N/A";
 
 
-        const balanceText =
-          item.balance >= 0
-            ? `+${formatNumber(
-                item.balance
-              )}`
-            : formatNumber(
-                item.balance
-              );
+        let balanceText;
+
+
+        if (
+          item.balance > 0
+        ) {
+
+          balanceText =
+            `+${formatNumber(
+              item.balance
+            )}`;
+
+        } else {
+
+          balanceText =
+            formatNumber(
+              item.balance
+            );
+
+        }
 
 
         return (
@@ -1361,11 +1670,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       })
       .join("\n");
+
   }
 
 
   // =========================================================
-  // GENERATE FINAL REPORT
+  // GENERATE REPORT
   // =========================================================
 
   function generateReport() {
@@ -1383,14 +1693,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       $("reportDatePreview").textContent =
         reportDate;
+
     }
 
 
     // =======================================================
-    // DEDUCTIONS
+    // DEDUCTION LINES
     // =======================================================
 
-    let deductionLines = "- None";
+    let deductionLines =
+      "- None";
 
 
     if (
@@ -1410,14 +1722,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
           })
           .join("\n");
+
     }
 
 
     // =======================================================
-    // TIME LOSS
+    // TIME LOSS LINES
     // =======================================================
 
-    let lossLines = "- None";
+    let lossLines =
+      "- None";
 
 
     if (
@@ -1439,6 +1753,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           })
           .join("\n");
+
     }
 
 
@@ -1471,21 +1786,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =======================================================
-    // BALANCES
+    // PLAN BALANCE
+    // =======================================================
+
+    const totalPlan =
+      data.plan.totalQty;
+
+
+    const totalPossible =
+      data.plan.totalPossibleBikes;
+
+
+    const planShortage =
+      Math.max(
+        totalPlan -
+        totalPossible,
+        0
+      );
+
+
+    // =======================================================
+    // COMPLETED VS PLAN
     // =======================================================
 
     const balanceVsPlan =
       data.completed.total -
-      data.plan.totalQty;
-
-
-    const planMinutesDifference =
-      data.finalMinutes -
-      data.plan.totalRequiredMinutes;
+      totalPlan;
 
 
     // =======================================================
-    // BUILD REPORT
+    // REPORT
     // =======================================================
 
     let report = "";
@@ -1500,8 +1830,6 @@ document.addEventListener("DOMContentLoaded", () => {
     report +=
       "========================================\n\n";
 
-
-    // DATE
 
     report +=
       `DATE: ${reportDate}\n\n`;
@@ -1612,7 +1940,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     report +=
       `Total Planned Bikes : ${formatNumber(
-        data.plan.totalQty
+        totalPlan
+      )}\n`;
+
+    report +=
+      `Possible Bikes      : ${formatNumber(
+        totalPossible
       )}\n`;
 
     report +=
@@ -1625,37 +1958,33 @@ document.addEventListener("DOMContentLoaded", () => {
         data.finalMinutes
       )} min\n`;
 
+    report +=
+      `Remaining Minutes   : ${formatNumber(
+        data.plan.remainingMinutes
+      )} min\n`;
+
 
     if (
-      data.plan.totalRequiredMinutes === 0
+      totalPlan === 0
     ) {
 
       report +=
         "Plan Status         : No plan entered\n";
 
     } else if (
-      planMinutesDifference >= 0
+      planShortage === 0
     ) {
 
       report +=
         "Plan Status         : CAN BE COMPLETED\n";
 
-      report +=
-        `Time Remaining      : ${formatNumber(
-          planMinutesDifference
-        )} min\n`;
-
     } else {
 
       report +=
-        "Plan Status         : NOT ENOUGH TIME\n";
+        `Plan Status         : SHORT ${formatNumber(
+          planShortage
+        )} BIKES\n`;
 
-      report +=
-        `Time Shortage       : ${formatNumber(
-          Math.abs(
-            planMinutesDifference
-          )
-        )} min\n`;
     }
 
 
@@ -1663,7 +1992,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =======================================================
-    // COMPLETED
+    // COMPLETED BIKES
     // =======================================================
 
     report +=
@@ -1678,7 +2007,9 @@ document.addEventListener("DOMContentLoaded", () => {
       )} bikes\n`;
 
 
-    if (balanceVsPlan > 0) {
+    if (
+      balanceVsPlan > 0
+    ) {
 
       report +=
         `Balance vs Plan     : +${formatNumber(
@@ -1691,6 +2022,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `Balance vs Plan     : ${formatNumber(
           balanceVsPlan
         )} bikes\n`;
+
     }
 
 
@@ -1698,7 +2030,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =======================================================
-    // QUALITY DEPARTMENT
+    // QUALITY
     // =======================================================
 
     report +=
@@ -1765,13 +2097,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       $("finalReport").value =
         report;
+
     }
 
   }
 
 
   // =========================================================
-  // UPDATE EVERYTHING
+  // UPDATE
   // =========================================================
 
   function updateAll() {
@@ -1782,7 +2115,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // =========================================================
-  // ADD BUTTONS
+  // ADD DEDUCTION
   // =========================================================
 
   if ($("addDeductionBtn")) {
@@ -1795,10 +2128,16 @@ document.addEventListener("DOMContentLoaded", () => {
           addDeductionRow();
 
           updateAll();
+
         }
       );
+
   }
 
+
+  // =========================================================
+  // ADD TIME LOSS
+  // =========================================================
 
   if ($("addLossBtn")) {
 
@@ -1810,10 +2149,16 @@ document.addEventListener("DOMContentLoaded", () => {
           addLossRow();
 
           updateAll();
+
         }
       );
+
   }
 
+
+  // =========================================================
+  // ADD PLAN
+  // =========================================================
 
   if ($("addPlanBtn")) {
 
@@ -1825,10 +2170,16 @@ document.addEventListener("DOMContentLoaded", () => {
           addPlanRow();
 
           updateAll();
+
         }
       );
+
   }
 
+
+  // =========================================================
+  // ADD COMPLETED
+  // =========================================================
 
   if ($("addCompletedBtn")) {
 
@@ -1843,10 +2194,16 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
           updateAll();
+
         }
       );
+
   }
 
+
+  // =========================================================
+  // ADD REWORK
+  // =========================================================
 
   if ($("addReworkBtn")) {
 
@@ -1861,10 +2218,16 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
           updateAll();
+
         }
       );
+
   }
 
+
+  // =========================================================
+  // ADD FG
+  // =========================================================
 
   if ($("addFgBtn")) {
 
@@ -1879,8 +2242,10 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
           updateAll();
+
         }
       );
+
   }
 
 
@@ -1906,6 +2271,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             return;
+
           }
 
 
@@ -1927,17 +2293,20 @@ document.addEventListener("DOMContentLoaded", () => {
               "✓ REPORT COPIED";
 
 
-            setTimeout(() => {
+            setTimeout(
+              () => {
 
-              button.textContent =
-                oldText;
+                button.textContent =
+                  oldText;
 
-            }, 2000);
+              },
+              2000
+            );
 
 
           } catch (error) {
 
-            // Fallback
+            // Clipboard fallback
 
             const textarea =
               $("finalReport");
@@ -1945,18 +2314,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
 
-              textarea.removeAttribute(
-                "readonly"
-              );
+              textarea
+                .removeAttribute(
+                  "readonly"
+                );
+
 
               textarea.focus();
 
               textarea.select();
-
-              textarea.setSelectionRange(
-                0,
-                textarea.value.length
-              );
 
 
               document.execCommand(
@@ -1978,12 +2344,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 "✓ REPORT COPIED";
 
 
-              setTimeout(() => {
+              setTimeout(
+                () => {
 
-                button.textContent =
-                  oldText;
+                  button.textContent =
+                    oldText;
 
-              }, 2000);
+                },
+                2000
+              );
 
 
             } catch (fallbackError) {
@@ -1997,107 +2366,76 @@ document.addEventListener("DOMContentLoaded", () => {
               alert(
                 "Copy failed. Please select the report and copy it manually."
               );
+
             }
+
           }
 
         }
       );
+
   }
 
 
   // =========================================================
-  // DATE LISTENER
+  // GLOBAL INPUT LISTENERS
   // =========================================================
 
-  if ($("reportDate")) {
+  document
+    .querySelectorAll("input")
+    .forEach(input => {
 
-    $("reportDate")
-      .addEventListener(
+      input.addEventListener(
         "input",
         updateAll
       );
 
-    $("reportDate")
-      .addEventListener(
+
+      input.addEventListener(
         "change",
         updateAll
       );
-  }
+
+    });
 
 
   // =========================================================
-  // QUALITY INPUT LISTENERS
-  // =========================================================
-
-  if ($("sprPercentage")) {
-
-    $("sprPercentage")
-      .addEventListener(
-        "input",
-        updateAll
-      );
-
-    $("sprPercentage")
-      .addEventListener(
-        "change",
-        updateAll
-      );
-  }
-
-
-  if ($("qualityFg")) {
-
-    $("qualityFg")
-      .addEventListener(
-        "input",
-        updateAll
-      );
-
-    $("qualityFg")
-      .addEventListener(
-        "change",
-        updateAll
-      );
-  }
-
-
-  // =========================================================
-  // INITIAL ROWS
+  // INITIAL DATA
   // =========================================================
 
   setToday();
 
 
-  // Normal deduction
+  // Morning assembly
   addDeductionRow(
     "Morning Assembly",
     ""
   );
 
 
-  // Time loss
+  // First time-loss row
   addLossRow();
 
 
-  // Planned bike
+  // First planned bike row
   addPlanRow();
 
 
-  // Completed bike
+  // First completed row
   addBikeRow(
     "completedContainer",
     "completed-row"
   );
 
 
-  // Rework
+  // First rework row
   addBikeRow(
     "reworkContainer",
     "rework-row"
   );
 
 
-  // FG
+  // First FG row
   addBikeRow(
     "fgContainer",
     "fg-row"
@@ -2105,7 +2443,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // =========================================================
-  // INITIAL CALCULATION
+  // FIRST CALCULATION
   // =========================================================
 
   updateAll();
