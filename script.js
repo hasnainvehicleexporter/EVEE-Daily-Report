@@ -1,46 +1,51 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    /* =========================
+    /* =====================================================
        BASIC ELEMENTS
-    ========================= */
+    ===================================================== */
 
-    const dateInput = document.getElementById("reportDate");
+    const reportDate =
+        document.getElementById("reportDate");
 
-    const totalWorkersInput =
+    const totalWorkers =
         document.getElementById("totalWorkers");
 
-    const absentWorkersInput =
+    const absentWorkers =
         document.getElementById("absentWorkers");
 
-    const shiftHoursInput =
+    const shiftHours =
         document.getElementById("shiftHours");
 
 
-    /* =========================
+    /* =====================================================
        DEFAULT DATE
-    ========================= */
+    ===================================================== */
 
     const today = new Date();
 
-    const localDate =
+    const todayString =
         today.getFullYear() +
         "-" +
         String(today.getMonth() + 1).padStart(2, "0") +
         "-" +
         String(today.getDate()).padStart(2, "0");
 
-    dateInput.value = localDate;
+    reportDate.value = todayString;
 
 
-    /* =========================
-       HELPER FUNCTIONS
-    ========================= */
+    /* =====================================================
+       HELPER
+    ===================================================== */
 
-    function numberValue(element) {
+    function getNumber(element) {
 
-        const value = parseFloat(element.value);
+        const value =
+            parseFloat(element.value);
 
-        if (isNaN(value) || value < 0) {
+        if (
+            isNaN(value) ||
+            value < 0
+        ) {
             return 0;
         }
 
@@ -48,18 +53,51 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function calculateTimeDifference(from, to) {
+    function createRemoveButton() {
 
-        if (!from || !to) {
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+
+        button.className =
+            "btn remove-btn";
+
+        button.textContent =
+            "Remove";
+
+        return button;
+    }
+
+
+    /* =====================================================
+       TIME CALCULATOR
+    ===================================================== */
+
+    function calculateTimeDifference(
+        from,
+        to
+    ) {
+
+        if (
+            !from ||
+            !to
+        ) {
             return 0;
         }
 
-        const fromParts = from.split(":");
-        const toParts = to.split(":");
+
+        const fromParts =
+            from.split(":");
+
+        const toParts =
+            to.split(":");
+
 
         let fromMinutes =
             parseInt(fromParts[0]) * 60 +
             parseInt(fromParts[1]);
+
 
         let toMinutes =
             parseInt(toParts[0]) * 60 +
@@ -67,42 +105,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         /*
-         If To time is earlier than From time,
-         assume the loss crossed midnight.
+            If To is earlier than From,
+            assume the loss crossed midnight.
         */
 
-        if (toMinutes < fromMinutes) {
-            toMinutes += 24 * 60;
+        if (
+            toMinutes < fromMinutes
+        ) {
+
+            toMinutes += 1440;
+
         }
 
-        return toMinutes - fromMinutes;
+
+        return (
+            toMinutes -
+            fromMinutes
+        );
+
     }
 
 
-    function createButton() {
-
-        const button = document.createElement("button");
-
-        button.type = "button";
-
-        button.className = "btn remove";
-
-        button.textContent = "Remove";
-
-        return button;
-    }
-
-
-    /* =========================
+    /* =====================================================
        NORMAL DEDUCTIONS
-    ========================= */
+    ===================================================== */
 
     const deductionContainer =
-        document.getElementById("deductionContainer");
+        document.getElementById(
+            "deductionContainer"
+        );
+
 
     document
-        .getElementById("addDeductionBtn")
-        .addEventListener("click", addDeduction);
+        .getElementById(
+            "addDeductionBtn"
+        )
+        .addEventListener(
+            "click",
+            addDeduction
+        );
 
 
     function addDeduction() {
@@ -110,13 +151,17 @@ document.addEventListener("DOMContentLoaded", function () {
         const row =
             document.createElement("div");
 
-        row.className = "dynamic-row";
+        row.className =
+            "dynamic-row";
+
 
         row.innerHTML = `
 
             <div class="input-group">
 
-                <label>Reason</label>
+                <label>
+                    Reason
+                </label>
 
                 <input
                     type="text"
@@ -129,7 +174,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             <div class="input-group">
 
-                <label>Minutes</label>
+                <label>
+                    Minutes
+                </label>
 
                 <input
                     type="number"
@@ -142,141 +189,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
         `;
 
-        const removeButton = createButton();
 
-        row.appendChild(removeButton);
+        const remove =
+            createRemoveButton();
+
+
+        row.appendChild(remove);
+
 
         deductionContainer.appendChild(row);
 
 
         row.querySelectorAll("input")
             .forEach(input => {
-                input.addEventListener("input", updateAll);
+
+                input.addEventListener(
+                    "input",
+                    updateAll
+                );
+
             });
 
 
-        removeButton.addEventListener("click", function () {
-
-            row.remove();
-
-            updateAll();
-
-        });
-
-
-        updateAll();
-    }
-
-
-    /* =========================
-       TIME LOSS
-    ========================= */
-
-    const lossContainer =
-        document.getElementById("lossContainer");
-
-
-    document
-        .getElementById("addLossBtn")
-        .addEventListener("click", addTimeLoss);
-
-
-    function addTimeLoss() {
-
-        const row =
-            document.createElement("div");
-
-        row.className = "loss-row";
-
-        row.innerHTML = `
-
-            <div class="input-group">
-
-                <label>From Time</label>
-
-                <input
-                    type="time"
-                    class="loss-from"
-                >
-
-            </div>
-
-
-            <div class="input-group">
-
-                <label>To Time</label>
-
-                <input
-                    type="time"
-                    class="loss-to"
-                >
-
-            </div>
-
-
-            <div class="input-group loss-reason">
-
-                <label>Reason</label>
-
-                <input
-                    type="text"
-                    class="loss-reason-input"
-                    placeholder="Machine breakdown"
-                >
-
-            </div>
-
-
-            <div>
-
-                <label class="input-group">
-                    <span>Loss</span>
-
-                    <span class="loss-result">
-                        0 min
-                    </span>
-
-                </label>
-
-            </div>
-
-        `;
-
-
-        const removeButton = createButton();
-
-        row.appendChild(removeButton);
-
-        lossContainer.appendChild(row);
-
-
-        const from =
-            row.querySelector(".loss-from");
-
-        const to =
-            row.querySelector(".loss-to");
-
-
-        from.addEventListener(
-            "input",
-            updateAll
-        );
-
-        to.addEventListener(
-            "input",
-            updateAll
-        );
-
-
-        row.querySelector(
-            ".loss-reason-input"
-        ).addEventListener(
-            "input",
-            updateAll
-        );
-
-
-        removeButton.addEventListener(
+        remove.addEventListener(
             "click",
             function () {
 
@@ -289,6 +224,134 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         updateAll();
+
+    }
+
+
+    /* =====================================================
+       TIME LOSS
+    ===================================================== */
+
+    const lossContainer =
+        document.getElementById(
+            "lossContainer"
+        );
+
+
+    document
+        .getElementById(
+            "addLossBtn"
+        )
+        .addEventListener(
+            "click",
+            addTimeLoss
+        );
+
+
+    function addTimeLoss() {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "loss-row";
+
+
+        row.innerHTML = `
+
+            <div class="input-group">
+
+                <label>
+                    From Time
+                </label>
+
+                <input
+                    type="time"
+                    class="loss-from"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label>
+                    To Time
+                </label>
+
+                <input
+                    type="time"
+                    class="loss-to"
+                >
+
+            </div>
+
+
+            <div class="input-group loss-reason">
+
+                <label>
+                    Reason
+                </label>
+
+                <input
+                    type="text"
+                    class="loss-reason-input"
+                    placeholder="Machine breakdown"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label>
+                    Time Lost
+                </label>
+
+                <div class="loss-result">
+                    0 min
+                </div>
+
+            </div>
+
+        `;
+
+
+        const remove =
+            createRemoveButton();
+
+
+        row.appendChild(remove);
+
+
+        lossContainer.appendChild(row);
+
+
+        row.querySelectorAll("input")
+            .forEach(input => {
+
+                input.addEventListener(
+                    "input",
+                    updateAll
+                );
+
+            });
+
+
+        remove.addEventListener(
+            "click",
+            function () {
+
+                row.remove();
+
+                updateAll();
+
+            }
+        );
+
+
+        updateAll();
+
     }
 
 
@@ -299,7 +362,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 ".loss-row"
             );
 
+
         const data = [];
+
 
         rows.forEach(row => {
 
@@ -308,15 +373,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     ".loss-from"
                 ).value;
 
+
             const to =
                 row.querySelector(
                     ".loss-to"
                 ).value;
 
+
             const reason =
                 row.querySelector(
                     ".loss-reason-input"
                 ).value.trim();
+
 
             const minutes =
                 calculateTimeDifference(
@@ -334,47 +402,57 @@ document.addEventListener("DOMContentLoaded", function () {
             if (
                 from ||
                 to ||
-                reason ||
-                minutes
+                reason
             ) {
 
                 data.push({
+
                     from,
                     to,
                     reason,
                     minutes
+
                 });
 
             }
 
         });
 
+
         return data;
+
     }
 
 
-    /* =========================
+    /* =====================================================
        BIKE ROWS
-    ========================= */
+    ===================================================== */
 
-    function addBikeRow(containerId) {
+    function addBikeRow(
+        containerId
+    ) {
 
         const container =
             document.getElementById(
                 containerId
             );
 
+
         const row =
             document.createElement("div");
 
+
         row.className =
             "dynamic-row";
+
 
         row.innerHTML = `
 
             <div class="input-group">
 
-                <label>Model</label>
+                <label>
+                    Model
+                </label>
 
                 <input
                     type="text"
@@ -387,7 +465,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             <div class="input-group">
 
-                <label>Color</label>
+                <label>
+                    Color
+                </label>
 
                 <input
                     type="text"
@@ -400,7 +480,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             <div class="input-group">
 
-                <label>Quantity</label>
+                <label>
+                    Quantity
+                </label>
 
                 <input
                     type="number"
@@ -414,10 +496,12 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
 
-        const removeButton =
-            createButton();
+        const remove =
+            createRemoveButton();
 
-        row.appendChild(removeButton);
+
+        row.appendChild(remove);
+
 
         container.appendChild(row);
 
@@ -433,7 +517,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
 
-        removeButton.addEventListener(
+        remove.addEventListener(
             "click",
             function () {
 
@@ -446,21 +530,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         updateAll();
+
     }
 
 
-    /* =========================
-       BIKE DATA
-    ========================= */
-
-    function getBikeData(containerId) {
+    function getBikeData(
+        containerId
+    ) {
 
         const rows =
             document.querySelectorAll(
-                "#" + containerId + " .dynamic-row"
+                "#" +
+                containerId +
+                " .dynamic-row"
             );
 
+
         const data = [];
+
 
         rows.forEach(row => {
 
@@ -469,10 +556,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     ".bike-model"
                 ).value.trim();
 
+
             const color =
                 row.querySelector(
                     ".bike-color"
                 ).value.trim();
+
 
             const qty =
                 parseInt(
@@ -489,35 +578,53 @@ document.addEventListener("DOMContentLoaded", function () {
             ) {
 
                 data.push({
+
                     model,
                     color,
                     qty
+
                 });
 
             }
 
         });
 
+
         return data;
+
     }
 
 
-    function totalBikeQuantity(data) {
+    function getTotalQuantity(
+        data
+    ) {
 
         return data.reduce(
-            (total, item) =>
-                total + item.qty,
+            function (
+                total,
+                item
+            ) {
+
+                return (
+                    total +
+                    item.qty
+                );
+
+            },
             0
         );
+
     }
 
 
-    /* =========================
-       PLAN / COMPLETED
-    ========================= */
+    /* =====================================================
+       ADD BIKE BUTTONS
+    ===================================================== */
 
     document
-        .getElementById("addPlanBtn")
+        .getElementById(
+            "addPlanBtn"
+        )
         .addEventListener(
             "click",
             function () {
@@ -531,7 +638,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     document
-        .getElementById("addCompletedBtn")
+        .getElementById(
+            "addCompletedBtn"
+        )
         .addEventListener(
             "click",
             function () {
@@ -545,7 +654,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     document
-        .getElementById("addReworkBtn")
+        .getElementById(
+            "addReworkBtn"
+        )
         .addEventListener(
             "click",
             function () {
@@ -559,7 +670,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     document
-        .getElementById("addFgBtn")
+        .getElementById(
+            "addFgBtn"
+        )
         .addEventListener(
             "click",
             function () {
@@ -572,77 +685,118 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
-    /* =========================
+    /* =====================================================
+       QUALITY DEPARTMENT
+    ===================================================== */
+
+    const sprPercentage =
+        document.getElementById(
+            "sprPercentage"
+        );
+
+
+    const qualityFg =
+        document.getElementById(
+            "qualityFg"
+        );
+
+
+    sprPercentage.addEventListener(
+        "input",
+        updateAll
+    );
+
+
+    qualityFg.addEventListener(
+        "input",
+        updateAll
+    );
+
+
+    /* =====================================================
        CYCLE TIME
-    ========================= */
+    ===================================================== */
 
-    const cycleInputs = [
-        "cycleTime1",
-        "cycleTime2",
-        "cycleTime3",
-        "modelName1",
-        "modelName2",
-        "modelName3"
-    ];
-
-
-    cycleInputs.forEach(id => {
+    for (
+        let i = 1;
+        i <= 3;
+        i++
+    ) {
 
         document
-            .getElementById(id)
+            .getElementById(
+                "modelName" + i
+            )
             .addEventListener(
                 "input",
                 updateAll
             );
 
-    });
+
+        document
+            .getElementById(
+                "cycleTime" + i
+            )
+            .addEventListener(
+                "input",
+                updateAll
+            );
+
+    }
 
 
-    /* =========================
+    /* =====================================================
        MAIN CALCULATION
-    ========================= */
+    ===================================================== */
 
-    function calculateMainData() {
+    function calculateData() {
 
-        const totalWorkers =
-            numberValue(
-                totalWorkersInput
+        const workers =
+            getNumber(
+                totalWorkers
             );
 
-        const absentWorkers =
-            numberValue(
-                absentWorkersInput
+
+        const absent =
+            getNumber(
+                absentWorkers
             );
 
-        const presentWorkers =
+
+        const present =
             Math.max(
-                totalWorkers -
-                absentWorkers,
+                workers -
+                absent,
                 0
             );
 
 
-        let presentPercentage = 0;
+        let presentPercentage =
+            0;
 
-        if (totalWorkers > 0) {
+
+        if (
+            workers > 0
+        ) {
 
             presentPercentage =
                 (
-                    presentWorkers /
-                    totalWorkers
-                ) * 100;
+                    present /
+                    workers
+                ) *
+                100;
 
         }
 
 
-        const shiftHours =
-            numberValue(
-                shiftHoursInput
+        const hours =
+            getNumber(
+                shiftHours
             );
 
 
         const shiftMinutes =
-            shiftHours * 60;
+            hours * 60;
 
 
         /* Normal deductions */
@@ -652,18 +806,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 "#deductionContainer .dynamic-row"
             );
 
-        let normalDeductionMinutes = 0;
 
-        deductionRows.forEach(row => {
+        let normalDeductions = 0;
 
-            normalDeductionMinutes +=
-                parseFloat(
-                    row.querySelector(
-                        ".deduction-minutes"
-                    ).value
-                ) || 0;
 
-        });
+        deductionRows.forEach(
+            function (row) {
+
+                normalDeductions +=
+                    parseFloat(
+                        row.querySelector(
+                            ".deduction-minutes"
+                        ).value
+                    ) || 0;
+
+            }
+        );
 
 
         /* Time loss */
@@ -671,26 +829,28 @@ document.addEventListener("DOMContentLoaded", function () {
         const lossData =
             getTimeLossData();
 
+
         const totalLoss =
             lossData.reduce(
-                (total, item) =>
-                    total + item.minutes,
+                function (
+                    total,
+                    item
+                ) {
+
+                    return (
+                        total +
+                        item.minutes
+                    );
+
+                },
                 0
             );
 
 
-        /*
-         FINAL AVAILABLE MINUTES
-
-         Shift minutes
-         - normal deductions
-         - time losses
-        */
-
         const finalMinutes =
             Math.max(
                 shiftMinutes -
-                normalDeductionMinutes -
+                normalDeductions -
                 totalLoss,
                 0
             );
@@ -698,15 +858,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
         return {
 
-            totalWorkers,
-            absentWorkers,
-            presentWorkers,
+            workers,
+            absent,
+            present,
             presentPercentage,
 
-            shiftHours,
+            hours,
             shiftMinutes,
 
-            normalDeductionMinutes,
+            normalDeductions,
 
             lossData,
             totalLoss,
@@ -718,28 +878,32 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /* =========================
-       UPDATE SCREEN
-    ========================= */
+    /* =====================================================
+       UPDATE DASHBOARD
+    ===================================================== */
 
     function updateAll() {
 
         const data =
-            calculateMainData();
+            calculateData();
 
+
+        /* Manpower */
 
         document.getElementById(
             "presentWorkers"
         ).textContent =
-            data.presentWorkers;
+            data.present;
 
 
         document.getElementById(
             "presentPercentage"
         ).textContent =
-            data.presentPercentage
-                .toFixed(1) + "%";
+            data.presentPercentage.toFixed(1) +
+            "%";
 
+
+        /* Shift */
 
         document.getElementById(
             "shiftMinutes"
@@ -753,9 +917,10 @@ document.addEventListener("DOMContentLoaded", function () {
             "totalDeductions"
         ).textContent =
             Math.round(
-                data.normalDeductionMinutes +
+                data.normalDeductions +
                 data.totalLoss
-            ) + " min";
+            ) +
+            " min";
 
 
         document.getElementById(
@@ -763,7 +928,8 @@ document.addEventListener("DOMContentLoaded", function () {
         ).textContent =
             Math.round(
                 data.finalMinutes
-            ) + " min";
+            ) +
+            " min";
 
 
         document.getElementById(
@@ -771,25 +937,29 @@ document.addEventListener("DOMContentLoaded", function () {
         ).textContent =
             Math.round(
                 data.totalLoss
-            ) + " minutes";
+            ) +
+            " minutes";
 
 
-        /* Bike totals */
+        /* Bike data */
 
         const plan =
             getBikeData(
                 "planContainer"
             );
 
+
         const completed =
             getBikeData(
                 "completedContainer"
             );
 
+
         const rework =
             getBikeData(
                 "reworkContainer"
             );
+
 
         const fg =
             getBikeData(
@@ -797,36 +967,118 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
+        const planTotal =
+            getTotalQuantity(plan);
+
+
+        const completedTotal =
+            getTotalQuantity(completed);
+
+
+        /* Dashboard */
+
+        document.getElementById(
+            "summaryWorkers"
+        ).textContent =
+            data.workers;
+
+
+        document.getElementById(
+            "summaryPresent"
+        ).textContent =
+            data.present;
+
+
+        document.getElementById(
+            "summaryMinutes"
+        ).textContent =
+            Math.round(
+                data.finalMinutes
+            );
+
+
+        document.getElementById(
+            "summaryCompleted"
+        ).textContent =
+            completedTotal;
+
+
+        /* Totals */
+
         document.getElementById(
             "totalPlan"
         ).textContent =
-            totalBikeQuantity(plan);
+            planTotal +
+            " bikes";
 
 
         document.getElementById(
             "totalCompleted"
         ).textContent =
-            totalBikeQuantity(completed);
+            completedTotal +
+            " bikes";
 
 
         document.getElementById(
             "totalRework"
         ).textContent =
-            totalBikeQuantity(rework);
+            getTotalQuantity(
+                rework
+            ) +
+            " bikes";
 
 
         document.getElementById(
             "totalFG"
         ).textContent =
-            totalBikeQuantity(fg);
+            getTotalQuantity(
+                fg
+            ) +
+            " bikes";
 
 
-        /* Cycle capacity */
+        /* Quality */
 
-        for (let i = 1; i <= 3; i++) {
+        let spr =
+            getNumber(
+                sprPercentage
+            );
 
-            const cycleTime =
-                numberValue(
+
+        if (
+            spr > 100
+        ) {
+
+            spr = 100;
+
+        }
+
+
+        document.getElementById(
+            "sprDisplay"
+        ).textContent =
+            spr.toFixed(2) +
+            "%";
+
+
+        document.getElementById(
+            "qualityFgDisplay"
+        ).textContent =
+            getNumber(
+                qualityFg
+            );
+
+
+        /* Capacity */
+
+        for (
+            let i = 1;
+            i <= 3;
+            i++
+        ) {
+
+            const cycle =
+                getNumber(
                     document.getElementById(
                         "cycleTime" + i
                     )
@@ -835,12 +1087,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
             let capacity = 0;
 
-            if (cycleTime > 0) {
+
+            if (
+                cycle > 0
+            ) {
 
                 capacity =
                     Math.floor(
                         data.finalMinutes /
-                        cycleTime
+                        cycle
                     );
 
             }
@@ -849,7 +1104,8 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById(
                 "capacity" + i
             ).textContent =
-                capacity + " bikes";
+                capacity +
+                " bikes";
 
         }
 
@@ -859,13 +1115,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /* =========================
-       REPORT FORMAT HELPERS
-    ========================= */
+    /* =====================================================
+       REPORT LIST
+    ===================================================== */
 
-    function formatBikeList(data) {
+    function formatBikeList(
+        data
+    ) {
 
-        if (data.length === 0) {
+        if (
+            data.length === 0
+        ) {
 
             return "None";
 
@@ -877,9 +1137,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 return (
                     "- " +
-                    (item.model || "N/A") +
+                    (
+                        item.model ||
+                        "N/A"
+                    ) +
                     " | Color: " +
-                    (item.color || "N/A") +
+                    (
+                        item.color ||
+                        "N/A"
+                    ) +
                     " | Qty: " +
                     item.qty
                 );
@@ -890,14 +1156,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /* =========================
-       FINAL HOD REPORT
-    ========================= */
+    /* =====================================================
+       GENERATE FINAL REPORT
+    ===================================================== */
 
     function generateReport() {
 
         const data =
-            calculateMainData();
+            calculateData();
 
 
         const plan =
@@ -905,15 +1171,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 "planContainer"
             );
 
+
         const completed =
             getBikeData(
                 "completedContainer"
             );
 
+
         const rework =
             getBikeData(
                 "reworkContainer"
             );
+
 
         const fg =
             getBikeData(
@@ -922,16 +1191,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         const totalPlan =
-            totalBikeQuantity(plan);
+            getTotalQuantity(
+                plan
+            );
+
 
         const totalCompleted =
-            totalBikeQuantity(completed);
+            getTotalQuantity(
+                completed
+            );
+
 
         const planBalance =
             Math.max(
                 totalPlan -
                 totalCompleted,
                 0
+            );
+
+
+        const qualityFG =
+            getNumber(
+                qualityFg
+            );
+
+
+        const spr =
+            Math.min(
+                getNumber(
+                    sprPercentage
+                ),
+                100
             );
 
 
@@ -942,12 +1232,15 @@ document.addEventListener("DOMContentLoaded", function () {
             "EVEE DAILY REPORT\n";
 
         report +=
-            "==============================\n\n";
+            "========================================\n\n";
 
 
         report +=
             "DATE: " +
-            (dateInput.value || "N/A") +
+            (
+                reportDate.value ||
+                "N/A"
+            ) +
             "\n\n";
 
 
@@ -957,18 +1250,21 @@ document.addEventListener("DOMContentLoaded", function () {
             "1. MANPOWER\n";
 
         report +=
+            "----------------------------------------\n";
+
+        report +=
             "Total Workers: " +
-            data.totalWorkers +
+            data.workers +
             "\n";
 
         report +=
             "Absent Workers: " +
-            data.absentWorkers +
+            data.absent +
             "\n";
 
         report +=
             "Present Workers: " +
-            data.presentWorkers +
+            data.present +
             "\n";
 
         report +=
@@ -983,8 +1279,11 @@ document.addEventListener("DOMContentLoaded", function () {
             "2. SHIFT TIME\n";
 
         report +=
+            "----------------------------------------\n";
+
+        report +=
             "Shift Hours: " +
-            data.shiftHours +
+            data.hours +
             " hours\n";
 
         report +=
@@ -1000,6 +1299,9 @@ document.addEventListener("DOMContentLoaded", function () {
         report +=
             "3. NORMAL TIME DEDUCTIONS\n";
 
+        report +=
+            "----------------------------------------\n";
+
 
         const deductionRows =
             document.querySelectorAll(
@@ -1007,47 +1309,54 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-        if (deductionRows.length === 0) {
+        let hasDeduction = false;
 
-            report += "None\n";
 
-        } else {
+        deductionRows.forEach(
+            function (row) {
 
-            deductionRows.forEach(
-                function (row) {
+                const reason =
+                    row.querySelector(
+                        ".deduction-reason"
+                    ).value.trim();
 
-                    const reason =
+
+                const minutes =
+                    parseFloat(
                         row.querySelector(
-                            ".deduction-reason"
-                        ).value.trim();
-
-                    const minutes =
-                        parseFloat(
-                            row.querySelector(
-                                ".deduction-minutes"
-                            ).value
-                        ) || 0;
+                            ".deduction-minutes"
+                        ).value
+                    ) || 0;
 
 
-                    if (
-                        reason ||
-                        minutes
-                    ) {
+                if (
+                    reason ||
+                    minutes
+                ) {
 
-                        report +=
-                            "- " +
-                            (
-                                reason ||
-                                "Deduction"
-                            ) +
-                            ": " +
-                            minutes +
-                            " min\n";
+                    hasDeduction = true;
 
-                    }
+
+                    report +=
+                        "- " +
+                        (
+                            reason ||
+                            "Deduction"
+                        ) +
+                        ": " +
+                        minutes +
+                        " min\n";
 
                 }
-            );
+
+            }
+        );
+
+
+        if (!hasDeduction) {
+
+            report +=
+                "None\n";
 
         }
 
@@ -1055,7 +1364,7 @@ document.addEventListener("DOMContentLoaded", function () {
         report +=
             "Total Normal Deductions: " +
             Math.round(
-                data.normalDeductionMinutes
+                data.normalDeductions
             ) +
             " min\n\n";
 
@@ -1064,6 +1373,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         report +=
             "4. TIME LOSS\n";
+
+        report +=
+            "----------------------------------------\n";
 
 
         if (
@@ -1076,24 +1388,29 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
 
             data.lossData.forEach(
-                function (loss, index) {
+                function (
+                    loss,
+                    index
+                ) {
 
                     report +=
-                        (index + 1) +
+                        (
+                            index + 1
+                        ) +
                         ". " +
                         (
                             loss.from ||
                             "--:--"
                         ) +
-                        " to " +
+                        " - " +
                         (
                             loss.to ||
                             "--:--"
                         ) +
-                        " | " +
+                        " | Reason: " +
                         (
                             loss.reason ||
-                            "No reason"
+                            "Not specified"
                         ) +
                         " | Loss: " +
                         loss.minutes +
@@ -1113,10 +1430,13 @@ document.addEventListener("DOMContentLoaded", function () {
             " min\n\n";
 
 
-        /* FINAL MINUTES */
+        /* PRODUCTION TIME */
 
         report +=
             "5. FINAL PRODUCTION TIME\n";
+
+        report +=
+            "----------------------------------------\n";
 
         report +=
             "Shift Minutes: " +
@@ -1128,7 +1448,7 @@ document.addEventListener("DOMContentLoaded", function () {
         report +=
             "Normal Deductions: " +
             Math.round(
-                data.normalDeductionMinutes
+                data.normalDeductions
             ) +
             " min\n";
 
@@ -1153,7 +1473,12 @@ document.addEventListener("DOMContentLoaded", function () {
             "6. BIKE PLAN\n";
 
         report +=
-            formatBikeList(plan) +
+            "----------------------------------------\n";
+
+        report +=
+            formatBikeList(
+                plan
+            ) +
             "\n";
 
         report +=
@@ -1168,7 +1493,12 @@ document.addEventListener("DOMContentLoaded", function () {
             "7. COMPLETED BIKES\n";
 
         report +=
-            formatBikeList(completed) +
+            "----------------------------------------\n";
+
+        report +=
+            formatBikeList(
+                completed
+            ) +
             "\n";
 
         report +=
@@ -1187,6 +1517,9 @@ document.addEventListener("DOMContentLoaded", function () {
         report +=
             "8. PRODUCTION CAPACITY\n";
 
+        report +=
+            "----------------------------------------\n";
+
 
         for (
             let i = 1;
@@ -1194,14 +1527,14 @@ document.addEventListener("DOMContentLoaded", function () {
             i++
         ) {
 
-            const modelName =
+            const name =
                 document.getElementById(
                     "modelName" + i
                 ).value.trim();
 
 
-            const cycleTime =
-                numberValue(
+            const cycle =
+                getNumber(
                     document.getElementById(
                         "cycleTime" + i
                     )
@@ -1209,33 +1542,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             if (
-                modelName ||
-                cycleTime
+                name ||
+                cycle
             ) {
 
-                let capacity = 0;
-
-                if (
-                    cycleTime > 0
-                ) {
-
-                    capacity =
-                        Math.floor(
+                const capacity =
+                    cycle > 0
+                        ? Math.floor(
                             data.finalMinutes /
-                            cycleTime
-                        );
-
-                }
+                            cycle
+                        )
+                        : 0;
 
 
                 report +=
                     "- " +
                     (
-                        modelName ||
+                        name ||
                         "Model " + i
                     ) +
                     ": " +
-                    cycleTime +
+                    cycle +
                     " min/bike → " +
                     capacity +
                     " bikes possible\n";
@@ -1248,38 +1575,73 @@ document.addEventListener("DOMContentLoaded", function () {
         report += "\n";
 
 
+        /* QUALITY */
+
+        report +=
+            "9. QUALITY DEPARTMENT\n";
+
+        report +=
+            "----------------------------------------\n";
+
+        report +=
+            "Assembly Line SPR: " +
+            spr.toFixed(2) +
+            "%\n";
+
+        report +=
+            "Total FG Bikes: " +
+            qualityFG +
+            " bikes\n\n";
+
+
         /* REWORK */
 
         report +=
-            "9. REWORK BIKES\n";
+            "10. REWORK BIKES\n";
 
         report +=
-            formatBikeList(rework) +
+            "----------------------------------------\n";
+
+        report +=
+            formatBikeList(
+                rework
+            ) +
             "\n";
 
         report +=
             "Total Rework: " +
-            totalBikeQuantity(rework) +
+            getTotalQuantity(
+                rework
+            ) +
             " bikes\n\n";
 
 
         /* FG */
 
         report +=
-            "10. FG - FINISHED GOODS\n";
+            "11. FG - FINISHED GOODS\n";
 
         report +=
-            formatBikeList(fg) +
+            "----------------------------------------\n";
+
+        report +=
+            formatBikeList(
+                fg
+            ) +
             "\n";
 
         report +=
-            "Total FG: " +
-            totalBikeQuantity(fg) +
+            "Total FG Entries: " +
+            getTotalQuantity(
+                fg
+            ) +
             " bikes\n\n";
 
 
+        /* END */
+
         report +=
-            "==============================\n";
+            "========================================\n";
 
         report +=
             "EVEE DAILY REPORT - END\n";
@@ -1287,14 +1649,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById(
             "finalReport"
-        ).value = report;
+        ).value =
+            report;
+
+
+        document.getElementById(
+            "reportDatePreview"
+        ).textContent =
+            reportDate.value ||
+            "-";
 
     }
 
 
-    /* =========================
+    /* =====================================================
        COPY REPORT
-    ========================= */
+    ===================================================== */
 
     document
         .getElementById(
@@ -1316,16 +1686,21 @@ document.addEventListener("DOMContentLoaded", function () {
                         report.value
                     );
 
+
                     this.textContent =
-                        "Copied!";
+                        "COPIED ✓";
+
 
                     setTimeout(
                         () => {
+
                             this.textContent =
-                                "Copy Report";
+                                "COPY REPORT";
+
                         },
-                        1500
+                        1600
                     );
+
 
                 } catch (error) {
 
@@ -1337,15 +1712,19 @@ document.addEventListener("DOMContentLoaded", function () {
                         "copy"
                     );
 
+
                     this.textContent =
-                        "Copied!";
+                        "COPIED ✓";
+
 
                     setTimeout(
                         () => {
+
                             this.textContent =
-                                "Copy Report";
+                                "COPY REPORT";
+
                         },
-                        1500
+                        1600
                     );
 
                 }
@@ -1354,20 +1733,25 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
-    /* =========================
+    /* =====================================================
        BASIC INPUT EVENTS
-    ========================= */
+    ===================================================== */
 
     [
-        totalWorkersInput,
-        absentWorkersInput,
-        shiftHoursInput,
-        dateInput
+        totalWorkers,
+        absentWorkers,
+        shiftHours,
+        reportDate
     ].forEach(
-        input => {
+        function (input) {
 
             input.addEventListener(
                 "input",
+                updateAll
+            );
+
+            input.addEventListener(
+                "change",
                 updateAll
             );
 
@@ -1375,24 +1759,34 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
 
-    /* =========================
+    /* =====================================================
        INITIAL ROWS
-    ========================= */
+    ===================================================== */
 
     addDeduction();
 
     addTimeLoss();
 
-    addBikeRow("planContainer");
+    addBikeRow(
+        "planContainer"
+    );
 
-    addBikeRow("completedContainer");
+    addBikeRow(
+        "completedContainer"
+    );
 
-    addBikeRow("reworkContainer");
+    addBikeRow(
+        "reworkContainer"
+    );
 
-    addBikeRow("fgContainer");
+    addBikeRow(
+        "fgContainer"
+    );
 
 
-    /* INITIAL CALCULATION */
+    /* =====================================================
+       INITIAL UPDATE
+    ===================================================== */
 
     updateAll();
 
