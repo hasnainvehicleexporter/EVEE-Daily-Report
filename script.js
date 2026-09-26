@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ============ RENDER: TIME LOSS (Minutes only) ============
+  // ============ RENDER: TIME LOSS (Reason + Minutes) ============
   function renderTimeLosses() {
     var body = $('timeLossBody');
     if (!body) return;
