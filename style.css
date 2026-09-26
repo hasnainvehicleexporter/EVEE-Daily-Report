@@ -113,7 +113,7 @@ input[readonly] { background: #f0f2f5; color: #333; cursor: default; }
 
 .table-wrap { width: 100%; overflow-x: auto; border-radius: 8px; margin-bottom: 8px; }
 
-.dyn-table { width: 100%; border-collapse: collapse; font-size: .88rem; min-width: 560px; }
+.dyn-table { width: 100%; border-collapse: collapse; font-size: .88rem; min-width: 480px; }
 .dyn-table th {
   background: #f4f6f8;
   text-align: left;
@@ -222,7 +222,7 @@ input[readonly] { background: #f0f2f5; color: #333; cursor: default; }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .summary-cards { grid-template-columns: 1fr 1fr; gap: 8px; }
   .summary-value { font-size: 1.15rem; }
-  .dyn-table { font-size: .78rem; min-width: 480px; }
+  .dyn-table { font-size: .78rem; min-width: 400px; }
   .dyn-table th, .dyn-table td { padding: 5px 4px; }
   .btn { width: 100%; padding: 12px 14px; }
   .report-actions { flex-direction: column; }
