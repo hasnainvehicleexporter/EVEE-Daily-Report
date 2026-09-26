@@ -73,7 +73,7 @@
   <!-- SHIFT TIME -->
   <section class="card">
     <h2>⏱️ Shift Time</h2>
-    <div class="grid grid-4">
+    <div class="grid grid-3">
       <div class="field">
         <label for="shiftHours">Shift Hours</label>
         <input type="number" id="shiftHours" value="8" min="0">
@@ -86,10 +86,6 @@
         <label for="normalDeductionsTotal">Normal Deductions</label>
         <input type="number" id="normalDeductionsTotal" value="0" readonly>
       </div>
-      <div class="field">
-        <label for="timeLossTotal">Time Loss</label>
-        <input type="number" id="timeLossTotal" value="0" readonly>
-      </div>
     </div>
     <div class="field">
       <label for="finalProductionMinutes">Final Production Minutes</label>
@@ -100,6 +96,7 @@
   <!-- NORMAL DEDUCTIONS -->
   <section class="card">
     <h2>🔧 Normal Time Deductions</h2>
+    <p class="hint">These minutes are subtracted from total shift time (e.g. Morning Assembly, Tea Break).</p>
     <div class="table-wrap">
       <table class="dyn-table">
         <thead>
@@ -113,7 +110,8 @@
 
   <!-- TIME LOSS -->
   <section class="card">
-    <h2>⏳ Time Loss</h2>
+    <h2>⏳ Time Loss (Informational)</h2>
+    <p class="hint">Time loss is <strong>not subtracted</strong> from working hours — recorded only for reference.</p>
     <div class="table-wrap">
       <table class="dyn-table">
         <thead>
@@ -123,6 +121,7 @@
       </table>
     </div>
     <button type="button" class="btn green" id="addTimeLossBtn">+ Add Time Loss</button>
+    <div class="total-line">Total Time Loss (info only): <strong id="totalTimeLoss">0</strong> min</div>
   </section>
 
   <!-- BIKE PLAN -->
