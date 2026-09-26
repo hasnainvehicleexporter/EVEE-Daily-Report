@@ -1,298 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVEE Daily Report</title>
-  <!-- jsPDF CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link rel="stylesheet" href="./style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVEE Daily Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <header class="header">
-    <div class="header-content">
-      <h1>EVEE Daily Report</h1>
+
+<header class="header">
+  <h1>EVEE Daily Report</h1>
+</header>
+
+<main class="container">
+
+  <!-- DATE -->
+  <section class="card">
+    <h2>📅 Date</h2>
+    <div class="field">
+      <label for="reportDate">Report Date</label>
+      <input type="date" id="reportDate">
     </div>
-  </header>
+  </section>
 
-  <main class="main-container">
-    <!-- SECTION 1 — DATE -->
-    <section class="card">
-      <h2 class="section-title">📅 Date</h2>
-      <div class="form-group">
-        <label for="reportDate">Report Date</label>
-        <input type="date" id="reportDate" class="input-field">
+  <!-- MANPOWER -->
+  <section class="card">
+    <h2>👷 Manpower</h2>
+    <div class="grid grid-3">
+      <div class="field">
+        <label for="totalWorkers">Total Workers</label>
+        <input type="number" id="totalWorkers" value="0" min="0">
       </div>
-    </section>
+      <div class="field">
+        <label for="absentWorkers">Absent Workers</label>
+        <input type="number" id="absentWorkers" value="0" min="0">
+      </div>
+      <div class="field">
+        <label for="presentWorkers">Present Workers</label>
+        <input type="number" id="presentWorkers" value="0" readonly>
+      </div>
+    </div>
+    <div class="field">
+      <label for="presentWorkerPct">Present Worker %</label>
+      <input type="text" id="presentWorkerPct" value="0.00%" readonly>
+    </div>
+  </section>
 
-    <!-- SECTION 2 — MANPOWER -->
-    <section class="card">
-      <h2 class="section-title">👷 Manpower</h2>
-      <div class="grid-3">
-        <div class="form-group">
-          <label for="totalWorkers">Total Workers</label>
-          <input type="number" id="totalWorkers" class="input-field" value="0" min="0" step="1">
-        </div>
-        <div class="form-group">
-          <label for="absentWorkers">Absent Workers</label>
-          <input type="number" id="absentWorkers" class="input-field" value="0" min="0" step="1">
-        </div>
-        <div class="form-group">
-          <label for="presentWorkers">Present Workers</label>
-          <input type="number" id="presentWorkers" class="input-field" value="0" readonly>
-        </div>
+  <!-- SUMMARY -->
+  <section class="card">
+    <h2>📊 Summary</h2>
+    <div class="summary-cards">
+      <div class="summary-card">
+        <span class="summary-label">Total Workers</span>
+        <span class="summary-value" id="sumTotalWorkers">0</span>
       </div>
-      <div class="form-group">
-        <label for="presentWorkerPct">Present Worker %</label>
-        <input type="text" id="presentWorkerPct" class="input-field" value="0.00%" readonly>
+      <div class="summary-card">
+        <span class="summary-label">Present Workers</span>
+        <span class="summary-value" id="sumPresentWorkers">0</span>
       </div>
-    </section>
+      <div class="summary-card">
+        <span class="summary-label">Production Minutes</span>
+        <span class="summary-value" id="sumProductionMinutes">0</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Completed Bikes</span>
+        <span class="summary-value" id="sumCompletedBikes">0</span>
+      </div>
+    </div>
+  </section>
 
-    <!-- SECTION 3 — SUMMARY CARDS -->
-    <section class="card">
-      <h2 class="section-title">📊 Summary</h2>
-      <div class="summary-cards">
-        <div class="summary-card">
-          <span class="summary-label">Total Workers</span>
-          <span class="summary-value" id="summaryTotalWorkers">0</span>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">Present Workers</span>
-          <span class="summary-value" id="summaryPresentWorkers">0</span>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">Production Minutes</span>
-          <span class="summary-value" id="summaryProductionMinutes">0</span>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">Completed Bikes</span>
-          <span class="summary-value" id="summaryCompletedBikes">0</span>
-        </div>
+  <!-- SHIFT TIME -->
+  <section class="card">
+    <h2>⏱️ Shift Time</h2>
+    <div class="grid grid-4">
+      <div class="field">
+        <label for="shiftHours">Shift Hours</label>
+        <input type="number" id="shiftHours" value="8" min="0">
       </div>
-    </section>
+      <div class="field">
+        <label for="shiftMinutes">Shift Minutes</label>
+        <input type="number" id="shiftMinutes" value="0" min="0">
+      </div>
+      <div class="field">
+        <label for="normalDeductionsTotal">Normal Deductions</label>
+        <input type="number" id="normalDeductionsTotal" value="0" readonly>
+      </div>
+      <div class="field">
+        <label for="timeLossTotal">Time Loss</label>
+        <input type="number" id="timeLossTotal" value="0" readonly>
+      </div>
+    </div>
+    <div class="field">
+      <label for="finalProductionMinutes">Final Production Minutes</label>
+      <input type="number" id="finalProductionMinutes" value="0" readonly class="green-input">
+    </div>
+  </section>
 
-    <!-- SECTION 4 — SHIFT TIME -->
-    <section class="card">
-      <h2 class="section-title">⏱️ Shift Time</h2>
-      <div class="grid-4">
-        <div class="form-group">
-          <label for="shiftHours">Shift Hours</label>
-          <input type="number" id="shiftHours" class="input-field" value="8" min="0" step="1">
-        </div>
-        <div class="form-group">
-          <label for="shiftMinutes">Shift Minutes</label>
-          <input type="number" id="shiftMinutes" class="input-field" value="0" min="0" step="1">
-        </div>
-        <div class="form-group">
-          <label for="normalDeductionsTotal">Normal Deductions</label>
-          <input type="number" id="normalDeductionsTotal" class="input-field" value="0" readonly>
-        </div>
-        <div class="form-group">
-          <label for="timeLossTotal">Time Loss</label>
-          <input type="number" id="timeLossTotal" class="input-field" value="0" readonly>
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="finalProductionMinutes">Final Production Minutes</label>
-        <input type="number" id="finalProductionMinutes" class="input-field highlight-green" value="0" readonly>
-      </div>
-    </section>
+  <!-- NORMAL DEDUCTIONS -->
+  <section class="card">
+    <h2>🔧 Normal Time Deductions</h2>
+    <div class="table-wrap">
+      <table class="dyn-table">
+        <thead>
+          <tr><th>Reason</th><th>Minutes</th><th>Action</th></tr>
+        </thead>
+        <tbody id="deductionBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn green" id="addDeductionBtn">+ Add Deduction</button>
+  </section>
 
-    <!-- SECTION 5 — NORMAL TIME DEDUCTIONS -->
-    <section class="card">
-      <h2 class="section-title">🔧 Normal Time Deductions</h2>
-      <div class="table-responsive">
-        <table class="dynamic-table" id="deductionTable">
-          <thead>
-            <tr>
-              <th>Reason</th>
-              <th>Minutes</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="deductionBody">
-            <!-- Rows added dynamically -->
-          </tbody>
-        </table>
-      </div>
-      <button class="btn btn-green" id="addDeductionBtn">+ Add Deduction</button>
-    </section>
+  <!-- TIME LOSS -->
+  <section class="card">
+    <h2>⏳ Time Loss</h2>
+    <div class="table-wrap">
+      <table class="dyn-table">
+        <thead>
+          <tr><th>From</th><th>To</th><th>Reason</th><th>Minutes</th><th>Action</th></tr>
+        </thead>
+        <tbody id="timeLossBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn green" id="addTimeLossBtn">+ Add Time Loss</button>
+  </section>
 
-    <!-- SECTION 6 — TIME LOSS -->
-    <section class="card">
-      <h2 class="section-title">⏳ Time Loss</h2>
-      <div class="table-responsive">
-        <table class="dynamic-table" id="timeLossTable">
-          <thead>
-            <tr>
-              <th>From</th>
-              <th>To</th>
-              <th>Reason</th>
-              <th>Minutes</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="timeLossBody">
-            <!-- Rows added dynamically -->
-          </tbody>
-        </table>
-      </div>
-      <button class="btn btn-green" id="addTimeLossBtn">+ Add Time Loss</button>
-    </section>
+  <!-- BIKE PLAN -->
+  <section class="card">
+    <h2>🚲 Bike Plan</h2>
+    <div class="table-wrap">
+      <table class="dyn-table">
+        <thead>
+          <tr>
+            <th>Model</th><th>Color</th><th>Plan Qty</th><th>Cycle Time</th>
+            <th>Required Min</th><th>Possible</th><th>Balance</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="bikePlanBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn green" id="addBikePlanBtn">+ Add Bike Plan</button>
 
-    <!-- SECTION 7 — BIKE PLAN -->
-    <section class="card">
-      <h2 class="section-title">🚲 Bike Plan</h2>
-      <div class="table-responsive">
-        <table class="dynamic-table" id="bikePlanTable">
-          <thead>
-            <tr>
-              <th>Model</th>
-              <th>Color</th>
-              <th>Plan Qty</th>
-              <th>Cycle Time</th>
-              <th>Required Min</th>
-              <th>Possible Bikes</th>
-              <th>Balance</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="bikePlanBody">
-            <!-- Rows added dynamically -->
-          </tbody>
-        </table>
-      </div>
-      <button class="btn btn-green" id="addBikePlanBtn">+ Add Bike Plan</button>
+    <h3 class="sub">Bike Plan Summary</h3>
+    <div class="plan-summary">
+      <div><span>Total Planned Bikes</span><strong id="planTotalPlanned">0</strong></div>
+      <div><span>Total Required Minutes</span><strong id="planTotalRequired">0</strong></div>
+      <div><span>Available Production Minutes</span><strong id="planAvailable">0</strong></div>
+      <div><span>Remaining Minutes</span><strong id="planRemaining">0</strong></div>
+      <div><span>Status</span><strong id="planStatus">—</strong></div>
+    </div>
+  </section>
 
-      <!-- Bike Plan Summary -->
-      <div class="bike-plan-summary">
-        <h3 class="subsection-title">Bike Plan Summary</h3>
-        <div class="summary-grid">
-          <div class="summary-item">
-            <span class="summary-item-label">Total Planned Bikes</span>
-            <span class="summary-item-value" id="totalPlannedBikes">0</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-item-label">Total Required Minutes</span>
-            <span class="summary-item-value" id="totalRequiredMinutes">0</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-item-label">Available Production Minutes</span>
-            <span class="summary-item-value" id="availableProductionMinutes">0</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-item-label">Remaining Minutes</span>
-            <span class="summary-item-value" id="remainingMinutes">0</span>
-          </div>
-          <div class="summary-item status-item">
-            <span class="summary-item-label">Status</span>
-            <span class="summary-item-value" id="bikePlanStatus">—</span>
-          </div>
-        </div>
-      </div>
-    </section>
+  <!-- COMPLETED -->
+  <section class="card">
+    <h2>✅ Completed Bikes</h2>
+    <div class="table-wrap">
+      <table class="dyn-table">
+        <thead><tr><th>Model</th><th>Color</th><th>Quantity</th><th>Action</th></tr></thead>
+        <tbody id="completedBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn green" id="addCompletedBtn">+ Add Completed Bike</button>
+    <div class="total-line">Total Completed Bikes: <strong id="totalCompleted">0</strong></div>
+  </section>
 
-    <!-- SECTION 8 — COMPLETED BIKES -->
-    <section class="card">
-      <h2 class="section-title">✅ Completed Bikes</h2>
-      <div class="table-responsive">
-        <table class="dynamic-table" id="completedBikesTable">
-          <thead>
-            <tr>
-              <th>Model</th>
-              <th>Color</th>
-              <th>Quantity</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="completedBikesBody">
-            <!-- Rows added dynamically -->
-          </tbody>
-        </table>
+  <!-- QUALITY -->
+  <section class="card">
+    <h2>🔍 Quality</h2>
+    <div class="grid grid-2">
+      <div class="field">
+        <label for="sprPercent">Assembly Line SPR %</label>
+        <input type="number" id="sprPercent" value="0" min="0" max="100" step="0.01">
       </div>
-      <button class="btn btn-green" id="addCompletedBikeBtn">+ Add Completed Bike</button>
-      <div class="total-row">
-        <strong>Total Completed Bikes: <span id="totalCompletedBikes">0</span></strong>
+      <div class="field">
+        <label for="qualityFg">Quality FG Bikes</label>
+        <input type="number" id="qualityFg" value="0" min="0">
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- SECTION 9 — QUALITY -->
-    <section class="card">
-      <h2 class="section-title">🔍 Quality</h2>
-      <div class="grid-2">
-        <div class="form-group">
-          <label for="sprPercentage">Assembly Line SPR %</label>
-          <input type="number" id="sprPercentage" class="input-field" value="0" min="0" max="100" step="0.01">
-        </div>
-        <div class="form-group">
-          <label for="qualityFgBikes">Quality FG Bikes</label>
-          <input type="number" id="qualityFgBikes" class="input-field" value="0" min="0" step="1">
-        </div>
-      </div>
-    </section>
+  <!-- REWORK -->
+  <section class="card">
+    <h2>🔄 Rework Bikes</h2>
+    <div class="table-wrap">
+      <table class="dyn-table">
+        <thead><tr><th>Model</th><th>Color</th><th>Quantity</th><th>Action</th></tr></thead>
+        <tbody id="reworkBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn green" id="addReworkBtn">+ Add Rework Bike</button>
+    <div class="total-line">Total Rework Bikes: <strong id="totalRework">0</strong></div>
+  </section>
 
-    <!-- SECTION 10 — REWORK BIKES -->
-    <section class="card">
-      <h2 class="section-title">🔄 Rework Bikes</h2>
-      <div class="table-responsive">
-        <table class="dynamic-table" id="reworkBikesTable">
-          <thead>
-            <tr>
-              <th>Model</th>
-              <th>Color</th>
-              <th>Quantity</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="reworkBikesBody">
-            <!-- Rows added dynamically -->
-          </tbody>
-        </table>
-      </div>
-      <button class="btn btn-green" id="addReworkBikeBtn">+ Add Rework Bike</button>
-      <div class="total-row">
-        <strong>Total Rework Bikes: <span id="totalReworkBikes">0</span></strong>
-      </div>
-    </section>
+  <!-- FG -->
+  <section class="card">
+    <h2>🏁 FG (Finished Goods)</h2>
+    <div class="table-wrap">
+      <table class="dyn-table">
+        <thead><tr><th>Model</th><th>Color</th><th>Quantity</th><th>Action</th></tr></thead>
+        <tbody id="fgBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn green" id="addFgBtn">+ Add FG Bike</button>
+    <div class="total-line">Total FG Bikes: <strong id="totalFg">0</strong></div>
+  </section>
 
-    <!-- SECTION 11 — FG -->
-    <section class="card">
-      <h2 class="section-title">🏁 FG (Finished Goods)</h2>
-      <div class="table-responsive">
-        <table class="dynamic-table" id="fgBikesTable">
-          <thead>
-            <tr>
-              <th>Model</th>
-              <th>Color</th>
-              <th>Quantity</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="fgBikesBody">
-            <!-- Rows added dynamically -->
-          </tbody>
-        </table>
-      </div>
-      <button class="btn btn-green" id="addFgBikeBtn">+ Add FG Bike</button>
-      <div class="total-row">
-        <strong>Total FG Bikes: <span id="totalFgBikes">0</span></strong>
-      </div>
-    </section>
+  <!-- FINAL REPORT -->
+  <section class="card">
+    <h2>📄 Final Report</h2>
+    <div class="report-actions">
+      <button type="button" class="btn green" id="copyBtn">📋 Copy Report</button>
+      <button type="button" class="btn dark" id="pdfBtn">📥 Download PDF</button>
+    </div>
+    <div id="copyMsg" class="copy-msg">Report copied!</div>
+    <pre id="reportPreview" class="report-preview"></pre>
+  </section>
 
-    <!-- SECTION 12 — FINAL REPORT -->
-    <section class="card">
-      <h2 class="section-title">📄 Final Report</h2>
-      <div class="report-actions">
-        <button class="btn btn-green" id="copyReportBtn">📋 Copy Report</button>
-        <button class="btn btn-dark" id="downloadPdfBtn">📥 Download PDF</button>
-      </div>
-      <div class="report-preview-wrapper">
-        <pre id="reportPreview" class="report-preview"></pre>
-      </div>
-      <div id="copySuccessMsg" class="copy-success-msg">Report copied!</div>
-    </section>
-  </main>
+</main>
 
-  <script src="./script.js"></script>
+<script src="./script.js"></script>
 </body>
 </html>
