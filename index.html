@@ -13,252 +13,691 @@
 
 <div class="app">
 
-    <!-- HEADER -->
-    <header class="header">
-        <div>
-            <h1>EVEE Daily Report</h1>
-            <p>Daily Production Report Calculator</p>
+    <!-- ================= HEADER ================= -->
+
+    <header class="top-header">
+
+        <div class="brand-area">
+
+            <div class="brand-icon">
+                E
+            </div>
+
+            <div>
+                <h1>EVEE Daily Report</h1>
+                <p>Daily Production & Quality Report</p>
+            </div>
+
         </div>
 
-        <div class="header-date">
-            <label>Date</label>
-            <input type="date" id="reportDate">
+        <div class="date-area">
+
+            <label for="reportDate">
+                REPORT DATE
+            </label>
+
+            <input
+                type="date"
+                id="reportDate"
+            >
+
         </div>
+
     </header>
 
 
-    <!-- MANPOWER -->
-    <section class="card">
+    <!-- ================= QUICK SUMMARY ================= -->
 
-        <div class="section-title">
-            <h2>1. Manpower</h2>
+    <section class="summary-grid">
+
+        <div class="summary-card">
+
+            <span>Total Workers</span>
+
+            <strong id="summaryWorkers">
+                0
+            </strong>
+
+            <small>
+                Workforce
+            </small>
+
         </div>
 
-        <div class="grid-4">
 
-            <div class="input-group">
-                <label>Total Workers</label>
-                <input type="number" id="totalWorkers" min="0" placeholder="40">
-            </div>
+        <div class="summary-card">
 
-            <div class="input-group">
-                <label>Absent Workers</label>
-                <input type="number" id="absentWorkers" min="0" placeholder="3">
-            </div>
+            <span>Present</span>
 
-            <div class="result-box">
-                <span>Present Workers</span>
-                <strong id="presentWorkers">0</strong>
-            </div>
+            <strong id="summaryPresent">
+                0
+            </strong>
 
-            <div class="result-box">
-                <span>Present Percentage</span>
-                <strong id="presentPercentage">0%</strong>
-            </div>
+            <small>
+                Attendance
+            </small>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>Production Time</span>
+
+            <strong id="summaryMinutes">
+                0
+            </strong>
+
+            <small>
+                Available minutes
+            </small>
+
+        </div>
+
+
+        <div class="summary-card green-card">
+
+            <span>Completed Bikes</span>
+
+            <strong id="summaryCompleted">
+                0
+            </strong>
+
+            <small>
+                Production
+            </small>
 
         </div>
 
     </section>
 
 
-    <!-- SHIFT TIME -->
+    <!-- ================= MANPOWER ================= -->
+
     <section class="card">
 
-        <div class="section-title">
-            <h2>2. Shift Time</h2>
-        </div>
+        <div class="section-header">
 
-        <div class="grid-4">
-
-            <div class="input-group">
-                <label>Shift Hours</label>
-                <input type="number" id="shiftHours" min="0" step="0.25" placeholder="8">
-            </div>
-
-            <div class="result-box">
-                <span>Shift Minutes</span>
-                <strong id="shiftMinutes">0</strong>
-            </div>
-
-            <div class="result-box">
-                <span>Total Deductions</span>
-                <strong id="totalDeductions">0 min</strong>
-            </div>
-
-            <div class="result-box highlight">
-                <span>Final Available Minutes</span>
-                <strong id="finalMinutes">0 min</strong>
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- NORMAL DEDUCTIONS -->
-    <section class="card">
-
-        <div class="section-title">
             <div>
-                <h2>3. Normal Time Deductions</h2>
-                <p>Assembly, tea break, lunch, meetings, etc.</p>
+
+                <span class="section-number">
+                    01
+                </span>
+
+                <div>
+                    <h2>Manpower</h2>
+
+                    <p>
+                        Daily worker attendance
+                    </p>
+                </div>
+
             </div>
 
-            <button class="btn primary" id="addDeductionBtn">
+        </div>
+
+
+        <div class="input-grid four">
+
+            <div class="field">
+
+                <label>
+                    Total Workers
+                </label>
+
+                <input
+                    type="number"
+                    id="totalWorkers"
+                    min="0"
+                    placeholder="40"
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Absent Workers
+                </label>
+
+                <input
+                    type="number"
+                    id="absentWorkers"
+                    min="0"
+                    placeholder="3"
+                >
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <span>
+                    Present Workers
+                </span>
+
+                <strong id="presentWorkers">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <span>
+                    Present Percentage
+                </span>
+
+                <strong id="presentPercentage">
+                    0%
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= SHIFT TIME ================= -->
+
+    <section class="card">
+
+        <div class="section-header">
+
+            <div>
+
+                <span class="section-number">
+                    02
+                </span>
+
+                <div>
+
+                    <h2>Shift Time</h2>
+
+                    <p>
+                        Shift duration and available production time
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="input-grid four">
+
+            <div class="field">
+
+                <label>
+                    Shift Hours
+                </label>
+
+                <input
+                    type="number"
+                    id="shiftHours"
+                    min="0"
+                    step="0.25"
+                    placeholder="8"
+                >
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <span>
+                    Shift Minutes
+                </span>
+
+                <strong id="shiftMinutes">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-box">
+
+                <span>
+                    Total Deductions
+                </span>
+
+                <strong id="totalDeductions">
+                    0 min
+                </strong>
+
+            </div>
+
+
+            <div class="stat-box dark">
+
+                <span>
+                    Final Available
+                </span>
+
+                <strong id="finalMinutes">
+                    0 min
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= NORMAL DEDUCTIONS ================= -->
+
+    <section class="card">
+
+        <div class="section-header">
+
+            <div>
+
+                <span class="section-number">
+                    03
+                </span>
+
+                <div>
+
+                    <h2>Normal Time Deductions</h2>
+
+                    <p>
+                        Assembly, tea break, lunch, meetings, etc.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="btn"
+                id="addDeductionBtn"
+                type="button"
+            >
                 + Add Deduction
             </button>
+
         </div>
+
 
         <div id="deductionContainer"></div>
 
     </section>
 
 
-    <!-- TIME LOSS -->
+    <!-- ================= TIME LOSS ================= -->
+
     <section class="card">
 
-        <div class="section-title">
+        <div class="section-header">
+
             <div>
-                <h2>4. Time Loss</h2>
-                <p>Select From and To time. Lost minutes will be calculated automatically.</p>
+
+                <span class="section-number">
+                    04
+                </span>
+
+                <div>
+
+                    <h2>Time Loss</h2>
+
+                    <p>
+                        Select From and To time and enter the reason
+                    </p>
+
+                </div>
+
             </div>
 
-            <button class="btn primary" id="addLossBtn">
+
+            <button
+                class="btn"
+                id="addLossBtn"
+                type="button"
+            >
                 + Add Time Loss
             </button>
+
         </div>
+
 
         <div id="lossContainer"></div>
 
-        <div class="total-loss">
-            <span>Total Time Loss</span>
-            <strong id="totalLossMinutes">0 minutes</strong>
+
+        <div class="total-bar">
+
+            <span>
+                TOTAL TIME LOSS
+            </span>
+
+            <strong id="totalLossMinutes">
+                0 minutes
+            </strong>
+
         </div>
 
     </section>
 
 
-    <!-- PLAN -->
+    <!-- ================= BIKE PLAN ================= -->
+
     <section class="card">
 
-        <div class="section-title">
+        <div class="section-header">
+
             <div>
-                <h2>5. Bike Plan</h2>
-                <p>Enter planned bikes by model, color and quantity.</p>
+
+                <span class="section-number">
+                    05
+                </span>
+
+                <div>
+
+                    <h2>Bike Plan</h2>
+
+                    <p>
+                        Planned production by model and color
+                    </p>
+
+                </div>
+
             </div>
 
-            <button class="btn primary" id="addPlanBtn">
-                + Add Planned Bikes
+
+            <button
+                class="btn"
+                id="addPlanBtn"
+                type="button"
+            >
+                + Add Planned Bike
             </button>
+
         </div>
+
 
         <div id="planContainer"></div>
 
-        <div class="summary-line">
-            Total Planned Bikes:
-            <strong id="totalPlan">0</strong>
+
+        <div class="total-bar light">
+
+            <span>
+                TOTAL PLANNED
+            </span>
+
+            <strong id="totalPlan">
+                0 bikes
+            </strong>
+
         </div>
 
     </section>
 
 
-    <!-- COMPLETED -->
+    <!-- ================= COMPLETED ================= -->
+
     <section class="card">
 
-        <div class="section-title">
+        <div class="section-header">
+
             <div>
-                <h2>6. Completed Bikes</h2>
-                <p>Enter actual production completed.</p>
+
+                <span class="section-number">
+                    06
+                </span>
+
+                <div>
+
+                    <h2>Completed Bikes</h2>
+
+                    <p>
+                        Actual production completed
+                    </p>
+
+                </div>
+
             </div>
 
-            <button class="btn primary" id="addCompletedBtn">
-                + Add Completed Bikes
+
+            <button
+                class="btn"
+                id="addCompletedBtn"
+                type="button"
+            >
+                + Add Completed Bike
             </button>
+
         </div>
+
 
         <div id="completedContainer"></div>
 
-        <div class="summary-line">
-            Total Completed Bikes:
-            <strong id="totalCompleted">0</strong>
+
+        <div class="total-bar light">
+
+            <span>
+                TOTAL COMPLETED
+            </span>
+
+            <strong id="totalCompleted">
+                0 bikes
+            </strong>
+
         </div>
 
     </section>
 
 
-    <!-- CYCLE TIME -->
+    <!-- ================= CYCLE TIME ================= -->
+
     <section class="card">
 
-        <div class="section-title">
+        <div class="section-header">
+
             <div>
-                <h2>7. Cycle Time & Production Capacity</h2>
-                <p>Enter cycle time for up to 3 models.</p>
+
+                <span class="section-number">
+                    07
+                </span>
+
+                <div>
+
+                    <h2>Cycle Time & Capacity</h2>
+
+                    <p>
+                        Calculate possible production from available minutes
+                    </p>
+
+                </div>
+
             </div>
+
         </div>
+
 
         <div class="cycle-grid">
 
+
+            <!-- MODEL 1 -->
+
             <div class="cycle-card">
 
-                <h3>Model 1</h3>
-
-                <div class="input-group">
-                    <label>Model Name</label>
-                    <input type="text" id="modelName1" placeholder="Model 1">
+                <div class="cycle-number">
+                    01
                 </div>
 
-                <div class="input-group">
-                    <label>Cycle Time (Minutes / Bike)</label>
-                    <input type="number" id="cycleTime1" min="0" step="0.01" placeholder="10">
+                <h3>
+                    Model 1
+                </h3>
+
+
+                <div class="field">
+
+                    <label>
+                        Model Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="modelName1"
+                        placeholder="Example: Model A"
+                    >
+
                 </div>
 
-                <div class="capacity">
-                    Possible Bikes
-                    <strong id="capacity1">0</strong>
+
+                <div class="field">
+
+                    <label>
+                        Cycle Time / Bike
+                    </label>
+
+                    <input
+                        type="number"
+                        id="cycleTime1"
+                        min="0"
+                        step="0.01"
+                        placeholder="10"
+                    >
+
+                </div>
+
+
+                <div class="capacity-result">
+
+                    <span>
+                        Possible Production
+                    </span>
+
+                    <strong id="capacity1">
+                        0 bikes
+                    </strong>
+
                 </div>
 
             </div>
 
 
+            <!-- MODEL 2 -->
+
             <div class="cycle-card">
 
-                <h3>Model 2</h3>
-
-                <div class="input-group">
-                    <label>Model Name</label>
-                    <input type="text" id="modelName2" placeholder="Model 2">
+                <div class="cycle-number">
+                    02
                 </div>
 
-                <div class="input-group">
-                    <label>Cycle Time (Minutes / Bike)</label>
-                    <input type="number" id="cycleTime2" min="0" step="0.01" placeholder="12">
+                <h3>
+                    Model 2
+                </h3>
+
+
+                <div class="field">
+
+                    <label>
+                        Model Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="modelName2"
+                        placeholder="Example: Model B"
+                    >
+
                 </div>
 
-                <div class="capacity">
-                    Possible Bikes
-                    <strong id="capacity2">0</strong>
+
+                <div class="field">
+
+                    <label>
+                        Cycle Time / Bike
+                    </label>
+
+                    <input
+                        type="number"
+                        id="cycleTime2"
+                        min="0"
+                        step="0.01"
+                        placeholder="12"
+                    >
+
+                </div>
+
+
+                <div class="capacity-result">
+
+                    <span>
+                        Possible Production
+                    </span>
+
+                    <strong id="capacity2">
+                        0 bikes
+                    </strong>
+
                 </div>
 
             </div>
 
 
+            <!-- MODEL 3 -->
+
             <div class="cycle-card">
 
-                <h3>Model 3</h3>
-
-                <div class="input-group">
-                    <label>Model Name</label>
-                    <input type="text" id="modelName3" placeholder="Model 3">
+                <div class="cycle-number">
+                    03
                 </div>
 
-                <div class="input-group">
-                    <label>Cycle Time (Minutes / Bike)</label>
-                    <input type="number" id="cycleTime3" min="0" step="0.01" placeholder="15">
+                <h3>
+                    Model 3
+                </h3>
+
+
+                <div class="field">
+
+                    <label>
+                        Model Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="modelName3"
+                        placeholder="Example: Model C"
+                    >
+
                 </div>
 
-                <div class="capacity">
-                    Possible Bikes
-                    <strong id="capacity3">0</strong>
+
+                <div class="field">
+
+                    <label>
+                        Cycle Time / Bike
+                    </label>
+
+                    <input
+                        type="number"
+                        id="cycleTime3"
+                        min="0"
+                        step="0.01"
+                        placeholder="15"
+                    >
+
+                </div>
+
+
+                <div class="capacity-result">
+
+                    <span>
+                        Possible Production
+                    </span>
+
+                    <strong id="capacity3">
+                        0 bikes
+                    </strong>
+
                 </div>
 
             </div>
@@ -268,81 +707,301 @@
     </section>
 
 
-    <!-- REWORK -->
-    <section class="card">
+    <!-- ================= QUALITY ================= -->
 
-        <div class="section-title">
+    <section class="quality-section">
+
+        <div class="quality-header">
 
             <div>
-                <h2>8. Rework Bikes</h2>
-                <p>Enter model, color and quantity.</p>
+
+                <span class="quality-label">
+                    QUALITY DEPARTMENT
+                </span>
+
+                <h2>
+                    Quality Performance
+                </h2>
+
+                <p>
+                    Enter the daily quality department figures.
+                </p>
+
             </div>
 
-            <button class="btn primary" id="addReworkBtn">
-                + Add Rework Bike
+            <div class="quality-mark">
+                Q
+            </div>
+
+        </div>
+
+
+        <div class="quality-grid">
+
+
+            <div class="quality-input">
+
+                <label>
+                    Assembly Line SPR
+                </label>
+
+                <div class="percentage-input">
+
+                    <input
+                        type="number"
+                        id="sprPercentage"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="98.50"
+                    >
+
+                    <span>
+                        %
+                    </span>
+
+                </div>
+
+                <small>
+                    Enter SPR percentage from Quality Department.
+                </small>
+
+            </div>
+
+
+            <div class="quality-input">
+
+                <label>
+                    Total FG Bikes
+                </label>
+
+                <input
+                    type="number"
+                    id="qualityFg"
+                    min="0"
+                    placeholder="120"
+                >
+
+                <small>
+                    Final FG quantity confirmed by Quality.
+                </small>
+
+            </div>
+
+
+            <div class="quality-stat">
+
+                <span>
+                    SPR
+                </span>
+
+                <strong id="sprDisplay">
+                    0%
+                </strong>
+
+            </div>
+
+
+            <div class="quality-stat">
+
+                <span>
+                    Quality FG
+                </span>
+
+                <strong id="qualityFgDisplay">
+                    0
+                </strong>
+
+                <small>
+                    bikes
+                </small>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= REWORK ================= -->
+
+    <section class="card">
+
+        <div class="section-header">
+
+            <div>
+
+                <span class="section-number">
+                    09
+                </span>
+
+                <div>
+
+                    <h2>Rework Bikes</h2>
+
+                    <p>
+                        Bikes requiring rework
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="btn"
+                id="addReworkBtn"
+                type="button"
+            >
+                + Add Rework
             </button>
 
         </div>
+
 
         <div id="reworkContainer"></div>
 
-        <div class="summary-line">
-            Total Rework:
-            <strong id="totalRework">0</strong>
+
+        <div class="total-bar light">
+
+            <span>
+                TOTAL REWORK
+            </span>
+
+            <strong id="totalRework">
+                0 bikes
+            </strong>
+
         </div>
 
     </section>
 
 
-    <!-- FG -->
+    <!-- ================= FG ================= -->
+
     <section class="card">
 
-        <div class="section-title">
+        <div class="section-header">
 
             <div>
-                <h2>9. FG - Finished Goods</h2>
-                <p>Enter finished goods by model, color and quantity.</p>
+
+                <span class="section-number">
+                    10
+                </span>
+
+                <div>
+
+                    <h2>FG - Finished Goods</h2>
+
+                    <p>
+                        Production FG entries
+                    </p>
+
+                </div>
+
             </div>
 
-            <button class="btn primary" id="addFgBtn">
-                + Add FG Bike
+
+            <button
+                class="btn"
+                id="addFgBtn"
+                type="button"
+            >
+                + Add FG
             </button>
 
         </div>
+
 
         <div id="fgContainer"></div>
 
-        <div class="summary-line">
-            Total FG:
-            <strong id="totalFG">0</strong>
+
+        <div class="total-bar light">
+
+            <span>
+                TOTAL FG
+            </span>
+
+            <strong id="totalFG">
+                0 bikes
+            </strong>
+
         </div>
 
     </section>
 
 
-    <!-- FINAL REPORT -->
-    <section class="card report-card">
+    <!-- ================= FINAL REPORT ================= -->
 
-        <div class="section-title">
+    <section class="report-section">
+
+        <div class="report-header">
 
             <div>
-                <h2>10. Final Report</h2>
-                <p>Ready to copy and send.</p>
+
+                <span>
+                    FINAL REPORT
+                </span>
+
+                <h2>
+                    EVEE Daily Report
+                </h2>
+
+                <p>
+                    Ready to copy and send.
+                </p>
+
             </div>
 
-            <button class="btn primary" id="copyReportBtn">
-                Copy Report
+
+            <button
+                class="copy-btn"
+                id="copyReportBtn"
+                type="button"
+            >
+                COPY REPORT
             </button>
 
         </div>
 
-        <textarea id="finalReport" readonly></textarea>
+
+        <div class="report-preview">
+
+            <div class="report-top">
+
+                <strong>
+                    EVEE DAILY REPORT
+                </strong>
+
+                <span id="reportDatePreview">
+                    -
+                </span>
+
+            </div>
+
+
+            <textarea
+                id="finalReport"
+                readonly
+            ></textarea>
+
+        </div>
 
     </section>
 
 
+    <!-- ================= FOOTER ================= -->
+
     <footer>
-        EVEE Daily Report
+
+        EVEE Daily Report Calculator
+
+        <span>
+            •
+        </span>
+
+        Production + Quality
+
     </footer>
 
 </div>
