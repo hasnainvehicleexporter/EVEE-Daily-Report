@@ -201,7 +201,6 @@ input[readonly] { background: #f0f2f5; color: #333; cursor: default; }
   color: #111;
 }
 
-/* RESPONSIVE */
 @media (max-width: 860px) {
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .summary-cards { grid-template-columns: repeat(2, 1fr); }
