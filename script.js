@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ============ STATE ============
   var deductions = [{ reason: 'Morning Assembly', minutes: 0 }];
-  var timeLosses = [{ from: '', to: '', reason: '', minutes: 0 }];
+  var timeLosses = [{ reason: '', minutes: 0 }];
   var bikePlans = [{ model: '', color: '', plan: 0, cycle: 0, required: 0, possible: 0, balance: 0 }];
   var completed = [{ model: '', color: '', qty: 0 }];
   var rework = [{ model: '', color: '', qty: 0 }];
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ============ RENDER: TIME LOSS ============
+  // ============ RENDER: TIME LOSS (Minutes only) ============
   function renderTimeLosses() {
     var body = $('timeLossBody');
     if (!body) return;
@@ -69,22 +69,16 @@ document.addEventListener('DOMContentLoaded', function () {
     timeLosses.forEach(function (r, i) {
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><input type="time" data-i="' + i + '" data-k="from" value="' + esc(r.from) + '"></td>' +
-        '<td><input type="time" data-i="' + i + '" data-k="to" value="' + esc(r.to) + '"></td>' +
         '<td><input type="text" data-i="' + i + '" data-k="reason" value="' + esc(r.reason) + '" placeholder="Reason"></td>' +
-        '<td><input type="number" class="tl-minutes" value="' + num(r.minutes) + '" readonly></td>' +
+        '<td><input type="number" data-i="' + i + '" data-k="minutes" value="' + num(r.minutes) + '" min="0"></td>' +
         '<td><button type="button" class="btn-remove" data-del="tl">✕</button></td>';
       body.appendChild(tr);
     });
-    body.querySelectorAll('input:not([readonly])').forEach(function (inp) {
+    body.querySelectorAll('input').forEach(function (inp) {
       inp.addEventListener('input', function () {
         var i = int(this.dataset.i);
         var k = this.dataset.k;
-        timeLosses[i][k] = this.value;
-        timeLosses[i].minutes = calcTL(timeLosses[i]);
-        var row = this.closest('tr');
-        var minsInp = row.querySelector('.tl-minutes');
-        if (minsInp) minsInp.value = num(timeLosses[i].minutes);
+        timeLosses[i][k] = (k === 'minutes') ? num(this.value) : this.value;
         updateAll();
       });
     });
@@ -96,15 +90,6 @@ document.addEventListener('DOMContentLoaded', function () {
         updateAll();
       });
     });
-  }
-
-  function calcTL(r) {
-    if (!r.from || !r.to) return 0;
-    var f = r.from.split(':'), t = r.to.split(':');
-    var fm = int(f[0]) * 60 + int(f[1]);
-    var tm = int(t[0]) * 60 + int(t[1]);
-    if (tm < fm) tm += 1440;
-    return tm - fm;
   }
 
   // ============ RENDER: BIKE PLAN ============
@@ -365,9 +350,9 @@ document.addEventListener('DOMContentLoaded', function () {
     r += 'Final Production Minutes : ' + num($('finalProductionMinutes').value) + ' min\n\n';
 
     r += '--- TIME LOSS (Informational) ---\n';
-    r += 'From | To | Reason | Minutes\n';
+    r += 'Reason | Minutes\n';
     timeLosses.forEach(function (t) {
-      r += (t.from || '-') + ' | ' + (t.to || '-') + ' | ' + (t.reason || '-') + ' | ' + num(t.minutes) + '\n';
+      r += (t.reason || '-') + ' | ' + num(t.minutes) + '\n';
     });
     var tlSum = 0;
     timeLosses.forEach(function (t) { tlSum += num(t.minutes); });
@@ -433,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var addTL = $('addTimeLossBtn');
   if (addTL) addTL.addEventListener('click', function () {
-    timeLosses.push({ from: '', to: '', reason: '', minutes: 0 });
+    timeLosses.push({ reason: '', minutes: 0 });
     renderTimeLosses();
     updateAll();
   });
@@ -626,12 +611,12 @@ document.addEventListener('DOMContentLoaded', function () {
     y += 3;
 
     section('TIME LOSS (Informational)');
-    var tlW = [22, 22, 68, 22];
-    tableHead(['From', 'To', 'Reason', 'Minutes'], tlW);
+    var tlW = [90, 40];
+    tableHead(['Reason', 'Minutes'], tlW);
     var tlSumPdf = 0;
     timeLosses.forEach(function (t) {
       tlSumPdf += num(t.minutes);
-      tableRow([t.from || '-', t.to || '-', t.reason || '-', num(t.minutes)], tlW);
+      tableRow([t.reason || '-', num(t.minutes)], tlW);
     });
     y += 2;
     line('Total Time Loss (info only)', tlSumPdf + ' min');
