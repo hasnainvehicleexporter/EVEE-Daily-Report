@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
-  // ============ HELPERS ============
   function $(id) { return document.getElementById(id); }
   function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
   function int(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
@@ -26,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
   var rework = [{ model: '', color: '', qty: 0 }];
   var fg = [{ model: '', color: '', qty: 0 }];
 
-  // ============ INIT ============
   $('reportDate').value = todayISO();
 
   // ============ RENDER: DEDUCTIONS ============
@@ -51,8 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     body.querySelectorAll('[data-del]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var tr = this.closest('tr');
-        var idx = Array.from(body.children).indexOf(tr);
+        var idx = Array.from(body.children).indexOf(this.closest('tr'));
         deductions.splice(idx, 1);
         renderDeductions();
         updateAll();
@@ -80,14 +77,16 @@ document.addEventListener('DOMContentLoaded', function () {
         var k = this.dataset.k;
         timeLosses[i][k] = this.value;
         timeLosses[i].minutes = calcTL(timeLosses[i]);
-        renderTimeLosses();
+        // Update ONLY the readonly cell in this row (no full re-render, keeps focus)
+        var row = this.closest('tr');
+        var mins = row.querySelectorAll('input')[3];
+        if (mins) mins.value = num(timeLosses[i].minutes);
         updateAll();
       });
     });
     body.querySelectorAll('[data-del]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var tr = this.closest('tr');
-        var idx = Array.from(body.children).indexOf(tr);
+        var idx = Array.from(body.children).indexOf(this.closest('tr'));
         timeLosses.splice(idx, 1);
         renderTimeLosses();
         updateAll();
@@ -115,13 +114,15 @@ document.addEventListener('DOMContentLoaded', function () {
         '<td><input type="text" data-i="' + i + '" data-k="color" value="' + esc(r.color) + '" placeholder="Color"></td>' +
         '<td><input type="number" data-i="' + i + '" data-k="plan" value="' + num(r.plan) + '" min="0"></td>' +
         '<td><input type="number" data-i="' + i + '" data-k="cycle" value="' + num(r.cycle) + '" min="0" step="0.1"></td>' +
-        '<td><input type="number" value="' + num(r.required) + '" readonly></td>' +
-        '<td><input type="number" value="' + num(r.possible) + '" readonly></td>' +
-        '<td><input type="number" value="' + num(r.balance) + '" readonly></td>' +
+        '<td><input type="number" class="bp-required" value="' + num(r.required) + '" readonly></td>' +
+        '<td><input type="number" class="bp-possible" value="' + num(r.possible) + '" readonly></td>' +
+        '<td><input type="number" class="bp-balance" value="' + num(r.balance) + '" readonly></td>' +
         '<td><button type="button" class="btn-remove" data-del="bp">✕</button></td>';
       body.appendChild(tr);
     });
-    body.querySelectorAll('input').forEach(function (inp) {
+
+    // Attach input handlers ONLY to editable fields
+    body.querySelectorAll('input[data-k]').forEach(function (inp) {
       inp.addEventListener('input', function () {
         var i = int(this.dataset.i);
         var k = this.dataset.k;
@@ -130,14 +131,29 @@ document.addEventListener('DOMContentLoaded', function () {
         updateAll();
       });
     });
+
     body.querySelectorAll('[data-del]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var tr = this.closest('tr');
-        var idx = Array.from(body.children).indexOf(tr);
+        var idx = Array.from(body.children).indexOf(this.closest('tr'));
         bikePlans.splice(idx, 1);
         renderBikePlans();
         updateAll();
       });
+    });
+  }
+
+  // Updates only the readonly cells in the bike plan table
+  function updateBikePlanReadonlyCells() {
+    var body = $('bikePlanBody');
+    Array.from(body.children).forEach(function (tr, i) {
+      var r = bikePlans[i];
+      if (!r) return;
+      var reqInp = tr.querySelector('.bp-required');
+      var posInp = tr.querySelector('.bp-possible');
+      var balInp = tr.querySelector('.bp-balance');
+      if (reqInp) reqInp.value = num(r.required);
+      if (posInp) posInp.value = num(r.possible);
+      if (balInp) balInp.value = num(r.balance);
     });
   }
 
@@ -165,8 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     body.querySelectorAll('[data-del]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var tr = this.closest('tr');
-        var idx = Array.from(body.children).indexOf(tr);
+        var idx = Array.from(body.children).indexOf(this.closest('tr'));
         dataArr.splice(idx, 1);
         window[renderFnName]();
         updateAll();
@@ -196,17 +211,16 @@ document.addEventListener('DOMContentLoaded', function () {
     var sm = num($('shiftMinutes').value);
     var totalShift = sh * 60 + sm;
 
-    // Normal deductions subtract from shift time
     var dedSum = 0;
     deductions.forEach(function (r) { dedSum += num(r.minutes); });
     $('normalDeductionsTotal').value = dedSum;
 
-    // Time loss is informational only — NOT subtracted
+    // Time Loss is informational only — NOT subtracted
     var tlSum = 0;
     timeLosses.forEach(function (r) { tlSum += num(r.minutes); });
     $('timeLossTotal').value = tlSum;
-    var tlLine = $('totalTimeLoss');
-    if (tlLine) tlLine.textContent = tlSum;
+    var tlEl = $('totalTimeLoss');
+    if (tlEl) tlEl.textContent = tlSum;
 
     var finalMin = totalShift - dedSum;
     if (finalMin < 0) finalMin = 0;
@@ -243,15 +257,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (remaining < 0) remaining = 0;
     });
 
-    var body = $('bikePlanBody');
-    Array.from(body.children).forEach(function (tr, i) {
-      var inputs = tr.querySelectorAll('input');
-      if (inputs.length >= 7 && bikePlans[i]) {
-        inputs[4].value = num(bikePlans[i].required);
-        inputs[5].value = num(bikePlans[i].possible);
-        inputs[6].value = num(bikePlans[i].balance);
-      }
-    });
+    // Update readonly cells in the table
+    updateBikePlanReadonlyCells();
 
     $('planTotalPlanned').textContent = totalPlanned;
     $('planTotalRequired').textContent = totalRequired;
@@ -259,7 +266,10 @@ document.addEventListener('DOMContentLoaded', function () {
     $('planRemaining').textContent = remaining;
 
     var statusEl = $('planStatus');
-    if (totalPossible >= totalPlanned) {
+    if (totalPlanned === 0) {
+      statusEl.textContent = '—';
+      statusEl.className = '';
+    } else if (totalPossible >= totalPlanned) {
       statusEl.textContent = 'CAN BE COMPLETED';
       statusEl.className = 'status-ok';
     } else {
@@ -285,11 +295,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ============ MASTER UPDATE ============
   function updateAll() {
-    calcManpower();
-    var finalMin = calcShift();
-    var planData = calcBikePlans(finalMin);
-    var totals = calcTotals();
-    buildReport(planData, totals);
+    try {
+      calcManpower();
+      var finalMin = calcShift();
+      var planData = calcBikePlans(finalMin);
+      var totals = calcTotals();
+      buildReport(planData, totals);
+    } catch (e) {
+      // Silent guard — prevents total freeze
+      console.error('Update error:', e);
+    }
   }
 
   // ============ REPORT ============
@@ -529,7 +544,6 @@ document.addEventListener('DOMContentLoaded', function () {
       y += 5;
     }
 
-    // ---- CONTENT ----
     drawHeader();
     y = 20;
 
