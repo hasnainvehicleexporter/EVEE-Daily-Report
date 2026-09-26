@@ -196,15 +196,19 @@ document.addEventListener('DOMContentLoaded', function () {
     var sm = num($('shiftMinutes').value);
     var totalShift = sh * 60 + sm;
 
+    // Normal deductions subtract from shift time
     var dedSum = 0;
     deductions.forEach(function (r) { dedSum += num(r.minutes); });
     $('normalDeductionsTotal').value = dedSum;
 
+    // Time loss is informational only — NOT subtracted
     var tlSum = 0;
     timeLosses.forEach(function (r) { tlSum += num(r.minutes); });
     $('timeLossTotal').value = tlSum;
+    var tlLine = $('totalTimeLoss');
+    if (tlLine) tlLine.textContent = tlSum;
 
-    var finalMin = totalShift - dedSum - tlSum;
+    var finalMin = totalShift - dedSum;
     if (finalMin < 0) finalMin = 0;
     $('finalProductionMinutes').value = finalMin;
     $('sumProductionMinutes').textContent = finalMin;
@@ -306,8 +310,14 @@ document.addEventListener('DOMContentLoaded', function () {
     r += '--- SHIFT TIME ---\n';
     r += 'Shift Time               : ' + num($('shiftHours').value) + 'h ' + num($('shiftMinutes').value) + 'm (' + (num($('shiftHours').value) * 60 + num($('shiftMinutes').value)) + ' min)\n';
     r += 'Normal Deductions        : ' + num($('normalDeductionsTotal').value) + ' min\n';
-    r += 'Time Loss                : ' + num($('timeLossTotal').value) + ' min\n';
     r += 'Final Production Minutes : ' + num($('finalProductionMinutes').value) + ' min\n\n';
+
+    r += '--- TIME LOSS (Informational) ---\n';
+    r += 'From | To | Reason | Minutes\n';
+    timeLosses.forEach(function (t) {
+      r += (t.from || '-') + ' | ' + (t.to || '-') + ' | ' + (t.reason || '-') + ' | ' + num(t.minutes) + '\n';
+    });
+    r += 'Total Time Loss (info only) : ' + num($('timeLossTotal').value) + ' min\n\n';
 
     r += '--- BIKE PLAN ---\n';
     r += 'Model | Color | Plan Qty | C.T | Required Time | Possible Bikes | Balance\n';
@@ -547,8 +557,17 @@ document.addEventListener('DOMContentLoaded', function () {
     section('SHIFT TIME');
     line('Shift Time', num($('shiftHours').value) + 'h ' + num($('shiftMinutes').value) + 'm');
     line('Normal Deductions', num($('normalDeductionsTotal').value) + ' min');
-    line('Time Loss', num($('timeLossTotal').value) + ' min');
     line('Final Production Minutes', num($('finalProductionMinutes').value) + ' min');
+    y += 3;
+
+    section('TIME LOSS (Informational)');
+    var tlW = [22, 22, 68, 22];
+    tableHead(['From', 'To', 'Reason', 'Minutes'], tlW);
+    timeLosses.forEach(function (t) {
+      tableRow([t.from || '-', t.to || '-', t.reason || '-', num(t.minutes)], tlW);
+    });
+    y += 2;
+    line('Total Time Loss (info only)', num($('timeLossTotal').value) + ' min');
     y += 3;
 
     section('BIKE PLAN');
