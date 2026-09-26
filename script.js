@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
+  // ============ HELPERS ============
   function $(id) { return document.getElementById(id); }
   function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
   function int(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
@@ -25,11 +26,14 @@ document.addEventListener('DOMContentLoaded', function () {
   var rework = [{ model: '', color: '', qty: 0 }];
   var fg = [{ model: '', color: '', qty: 0 }];
 
-  $('reportDate').value = todayISO();
+  // ============ INIT ============
+  var dateEl = $('reportDate');
+  if (dateEl) dateEl.value = todayISO();
 
   // ============ RENDER: DEDUCTIONS ============
   function renderDeductions() {
     var body = $('deductionBody');
+    if (!body) return;
     body.innerHTML = '';
     deductions.forEach(function (r, i) {
       var tr = document.createElement('tr');
@@ -60,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // ============ RENDER: TIME LOSS ============
   function renderTimeLosses() {
     var body = $('timeLossBody');
+    if (!body) return;
     body.innerHTML = '';
     timeLosses.forEach(function (r, i) {
       var tr = document.createElement('tr');
@@ -67,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '<td><input type="time" data-i="' + i + '" data-k="from" value="' + esc(r.from) + '"></td>' +
         '<td><input type="time" data-i="' + i + '" data-k="to" value="' + esc(r.to) + '"></td>' +
         '<td><input type="text" data-i="' + i + '" data-k="reason" value="' + esc(r.reason) + '" placeholder="Reason"></td>' +
-        '<td><input type="number" value="' + num(r.minutes) + '" readonly></td>' +
+        '<td><input type="number" class="tl-minutes" value="' + num(r.minutes) + '" readonly></td>' +
         '<td><button type="button" class="btn-remove" data-del="tl">✕</button></td>';
       body.appendChild(tr);
     });
@@ -77,10 +82,9 @@ document.addEventListener('DOMContentLoaded', function () {
         var k = this.dataset.k;
         timeLosses[i][k] = this.value;
         timeLosses[i].minutes = calcTL(timeLosses[i]);
-        // Update ONLY the readonly cell in this row (no full re-render, keeps focus)
         var row = this.closest('tr');
-        var mins = row.querySelectorAll('input')[3];
-        if (mins) mins.value = num(timeLosses[i].minutes);
+        var minsInp = row.querySelector('.tl-minutes');
+        if (minsInp) minsInp.value = num(timeLosses[i].minutes);
         updateAll();
       });
     });
@@ -106,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // ============ RENDER: BIKE PLAN ============
   function renderBikePlans() {
     var body = $('bikePlanBody');
+    if (!body) return;
     body.innerHTML = '';
     bikePlans.forEach(function (r, i) {
       var tr = document.createElement('tr');
@@ -121,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function () {
       body.appendChild(tr);
     });
 
-    // Attach input handlers ONLY to editable fields
     body.querySelectorAll('input[data-k]').forEach(function (inp) {
       inp.addEventListener('input', function () {
         var i = int(this.dataset.i);
@@ -142,9 +146,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Updates only the readonly cells in the bike plan table
   function updateBikePlanReadonlyCells() {
     var body = $('bikePlanBody');
+    if (!body) return;
     Array.from(body.children).forEach(function (tr, i) {
       var r = bikePlans[i];
       if (!r) return;
@@ -160,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // ============ RENDER SIMPLE TABLES ============
   function renderSimpleTable(bodyId, dataArr, renderFnName) {
     var body = $(bodyId);
+    if (!body) return;
     body.innerHTML = '';
     dataArr.forEach(function (r, i) {
       var tr = document.createElement('tr');
@@ -195,37 +200,51 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ============ CALCULATIONS ============
   function calcManpower() {
-    var total = num($('totalWorkers').value);
-    var absent = num($('absentWorkers').value);
+    var totalEl = $('totalWorkers');
+    var absentEl = $('absentWorkers');
+    var presentEl = $('presentWorkers');
+    var pctEl = $('presentWorkerPct');
+    var sTotal = $('sumTotalWorkers');
+    var sPresent = $('sumPresentWorkers');
+    if (!totalEl || !absentEl) return;
+
+    var total = num(totalEl.value);
+    var absent = num(absentEl.value);
     var present = total - absent;
     if (present < 0) present = 0;
-    $('presentWorkers').value = present;
+
+    if (presentEl) presentEl.value = present;
     var pct = total > 0 ? (present / total) * 100 : 0;
-    $('presentWorkerPct').value = pct.toFixed(2) + '%';
-    $('sumTotalWorkers').textContent = total;
-    $('sumPresentWorkers').textContent = present;
+    if (pctEl) pctEl.value = pct.toFixed(2) + '%';
+    if (sTotal) sTotal.textContent = total;
+    if (sPresent) sPresent.textContent = present;
   }
 
   function calcShift() {
-    var sh = num($('shiftHours').value);
-    var sm = num($('shiftMinutes').value);
+    var shEl = $('shiftHours');
+    var smEl = $('shiftMinutes');
+    var dedTotEl = $('normalDeductionsTotal');
+    var finalEl = $('finalProductionMinutes');
+    var sumProdEl = $('sumProductionMinutes');
+    if (!shEl || !smEl) return 0;
+
+    var sh = num(shEl.value);
+    var sm = num(smEl.value);
     var totalShift = sh * 60 + sm;
 
     var dedSum = 0;
     deductions.forEach(function (r) { dedSum += num(r.minutes); });
-    $('normalDeductionsTotal').value = dedSum;
+    if (dedTotEl) dedTotEl.value = dedSum;
 
-    // Time Loss is informational only — NOT subtracted
     var tlSum = 0;
     timeLosses.forEach(function (r) { tlSum += num(r.minutes); });
-    $('timeLossTotal').value = tlSum;
-    var tlEl = $('totalTimeLoss');
-    if (tlEl) tlEl.textContent = tlSum;
+    var tlLineEl = $('totalTimeLoss');
+    if (tlLineEl) tlLineEl.textContent = tlSum;
 
     var finalMin = totalShift - dedSum;
     if (finalMin < 0) finalMin = 0;
-    $('finalProductionMinutes').value = finalMin;
-    $('sumProductionMinutes').textContent = finalMin;
+    if (finalEl) finalEl.value = finalMin;
+    if (sumProdEl) sumProdEl.textContent = finalMin;
     return finalMin;
   }
 
@@ -257,28 +276,38 @@ document.addEventListener('DOMContentLoaded', function () {
       if (remaining < 0) remaining = 0;
     });
 
-    // Update readonly cells in the table
     updateBikePlanReadonlyCells();
 
-    $('planTotalPlanned').textContent = totalPlanned;
-    $('planTotalRequired').textContent = totalRequired;
-    $('planAvailable').textContent = available;
-    $('planRemaining').textContent = remaining;
+    var tpEl = $('planTotalPlanned');
+    var trEl = $('planTotalRequired');
+    var avEl = $('planAvailable');
+    var remEl = $('planRemaining');
+    var stEl = $('planStatus');
+    if (tpEl) tpEl.textContent = totalPlanned;
+    if (trEl) trEl.textContent = totalRequired;
+    if (avEl) avEl.textContent = available;
+    if (remEl) remEl.textContent = remaining;
 
-    var statusEl = $('planStatus');
-    if (totalPlanned === 0) {
-      statusEl.textContent = '—';
-      statusEl.className = '';
-    } else if (totalPossible >= totalPlanned) {
-      statusEl.textContent = 'CAN BE COMPLETED';
-      statusEl.className = 'status-ok';
-    } else {
-      var short = totalPlanned - totalPossible;
-      statusEl.textContent = 'SHORT ' + short + ' BIKES';
-      statusEl.className = 'status-fail';
+    if (stEl) {
+      if (totalPlanned === 0) {
+        stEl.textContent = '—';
+        stEl.className = '';
+      } else if (totalPossible >= totalPlanned) {
+        stEl.textContent = 'CAN BE COMPLETED';
+        stEl.className = 'status-ok';
+      } else {
+        var short = totalPlanned - totalPossible;
+        stEl.textContent = 'SHORT ' + short + ' BIKES';
+        stEl.className = 'status-fail';
+      }
     }
 
-    return { totalPlanned: totalPlanned, totalRequired: totalRequired, remaining: remaining, totalPossible: totalPossible };
+    return {
+      totalPlanned: totalPlanned,
+      totalRequired: totalRequired,
+      remaining: remaining,
+      totalPossible: totalPossible
+    };
   }
 
   function calcTotals() {
@@ -286,10 +315,14 @@ document.addEventListener('DOMContentLoaded', function () {
     completed.forEach(function (x) { c += num(x.qty); });
     rework.forEach(function (x) { r += num(x.qty); });
     fg.forEach(function (x) { f += num(x.qty); });
-    $('totalCompleted').textContent = c;
-    $('totalRework').textContent = r;
-    $('totalFg').textContent = f;
-    $('sumCompletedBikes').textContent = c;
+    var tcEl = $('totalCompleted');
+    var trEl = $('totalRework');
+    var tfEl = $('totalFg');
+    var scEl = $('sumCompletedBikes');
+    if (tcEl) tcEl.textContent = c;
+    if (trEl) trEl.textContent = r;
+    if (tfEl) tfEl.textContent = f;
+    if (scEl) scEl.textContent = c;
     return { c: c, r: r, f: f };
   }
 
@@ -302,14 +335,16 @@ document.addEventListener('DOMContentLoaded', function () {
       var totals = calcTotals();
       buildReport(planData, totals);
     } catch (e) {
-      // Silent guard — prevents total freeze
       console.error('Update error:', e);
     }
   }
 
   // ============ REPORT ============
   function buildReport(planData, totals) {
-    var dateVal = $('reportDate').value || todayISO();
+    if (!planData) planData = { totalPlanned: 0, totalRequired: 0, remaining: 0, totalPossible: 0 };
+    if (!totals) totals = { c: 0, r: 0, f: 0 };
+
+    var dateVal = ($('reportDate') && $('reportDate').value) || todayISO();
     var r = '';
     r += '========================================\n';
     r += '           EVEE DAILY REPORT\n';
@@ -323,7 +358,9 @@ document.addEventListener('DOMContentLoaded', function () {
     r += 'Present Worker % : ' + $('presentWorkerPct').value + '\n\n';
 
     r += '--- SHIFT TIME ---\n';
-    r += 'Shift Time               : ' + num($('shiftHours').value) + 'h ' + num($('shiftMinutes').value) + 'm (' + (num($('shiftHours').value) * 60 + num($('shiftMinutes').value)) + ' min)\n';
+    var shV = num($('shiftHours').value);
+    var smV = num($('shiftMinutes').value);
+    r += 'Shift Time               : ' + shV + 'h ' + smV + 'm (' + (shV * 60 + smV) + ' min)\n';
     r += 'Normal Deductions        : ' + num($('normalDeductionsTotal').value) + ' min\n';
     r += 'Final Production Minutes : ' + num($('finalProductionMinutes').value) + ' min\n\n';
 
@@ -332,7 +369,9 @@ document.addEventListener('DOMContentLoaded', function () {
     timeLosses.forEach(function (t) {
       r += (t.from || '-') + ' | ' + (t.to || '-') + ' | ' + (t.reason || '-') + ' | ' + num(t.minutes) + '\n';
     });
-    r += 'Total Time Loss (info only) : ' + num($('timeLossTotal').value) + ' min\n\n';
+    var tlSum = 0;
+    timeLosses.forEach(function (t) { tlSum += num(t.minutes); });
+    r += 'Total Time Loss (info only) : ' + tlSum + ' min\n\n';
 
     r += '--- BIKE PLAN ---\n';
     r += 'Model | Color | Plan Qty | C.T | Required Time | Possible Bikes | Balance\n';
@@ -372,7 +411,8 @@ document.addEventListener('DOMContentLoaded', function () {
     r += 'Total Rework Bikes    : ' + totals.r + '\n';
     r += 'Total FG Bikes        : ' + totals.f + '\n';
 
-    $('reportPreview').textContent = r;
+    var previewEl = $('reportPreview');
+    if (previewEl) previewEl.textContent = r;
   }
 
   // ============ EVENT BINDINGS ============
@@ -384,47 +424,57 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  $('addDeductionBtn').addEventListener('click', function () {
+  var addDed = $('addDeductionBtn');
+  if (addDed) addDed.addEventListener('click', function () {
     deductions.push({ reason: '', minutes: 0 });
     renderDeductions();
     updateAll();
   });
 
-  $('addTimeLossBtn').addEventListener('click', function () {
+  var addTL = $('addTimeLossBtn');
+  if (addTL) addTL.addEventListener('click', function () {
     timeLosses.push({ from: '', to: '', reason: '', minutes: 0 });
     renderTimeLosses();
     updateAll();
   });
 
-  $('addBikePlanBtn').addEventListener('click', function () {
+  var addBP = $('addBikePlanBtn');
+  if (addBP) addBP.addEventListener('click', function () {
     bikePlans.push({ model: '', color: '', plan: 0, cycle: 0, required: 0, possible: 0, balance: 0 });
     renderBikePlans();
     updateAll();
   });
 
-  $('addCompletedBtn').addEventListener('click', function () {
+  var addCB = $('addCompletedBtn');
+  if (addCB) addCB.addEventListener('click', function () {
     completed.push({ model: '', color: '', qty: 0 });
     renderCompleted();
     updateAll();
   });
 
-  $('addReworkBtn').addEventListener('click', function () {
+  var addRW = $('addReworkBtn');
+  if (addRW) addRW.addEventListener('click', function () {
     rework.push({ model: '', color: '', qty: 0 });
     renderRework();
     updateAll();
   });
 
-  $('addFgBtn').addEventListener('click', function () {
+  var addFG = $('addFgBtn');
+  if (addFG) addFG.addEventListener('click', function () {
     fg.push({ model: '', color: '', qty: 0 });
     renderFg();
     updateAll();
   });
 
   // COPY
-  $('copyBtn').addEventListener('click', function () {
-    var text = $('reportPreview').textContent;
+  var copyBtnEl = $('copyBtn');
+  if (copyBtnEl) copyBtnEl.addEventListener('click', function () {
+    var previewEl = $('reportPreview');
+    if (!previewEl) return;
+    var text = previewEl.textContent;
     function showOk() {
       var m = $('copyMsg');
+      if (!m) return;
       m.style.display = 'block';
       setTimeout(function () { m.style.display = 'none'; }, 2000);
     }
@@ -448,7 +498,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // PDF
-  $('pdfBtn').addEventListener('click', function () {
+  var pdfBtnEl = $('pdfBtn');
+  if (pdfBtnEl) pdfBtnEl.addEventListener('click', function () {
     var jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
     if (!jsPDFCtor) { alert('PDF library not loaded'); return; }
 
@@ -459,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var cw = pw - m * 2;
     var y = 0;
     var pageNum = 1;
-    var dateVal = $('reportDate').value || todayISO();
+    var dateVal = ($('reportDate') && $('reportDate').value) || todayISO();
 
     function newPage() {
       addFooter();
@@ -577,11 +628,13 @@ document.addEventListener('DOMContentLoaded', function () {
     section('TIME LOSS (Informational)');
     var tlW = [22, 22, 68, 22];
     tableHead(['From', 'To', 'Reason', 'Minutes'], tlW);
+    var tlSumPdf = 0;
     timeLosses.forEach(function (t) {
+      tlSumPdf += num(t.minutes);
       tableRow([t.from || '-', t.to || '-', t.reason || '-', num(t.minutes)], tlW);
     });
     y += 2;
-    line('Total Time Loss (info only)', num($('timeLossTotal').value) + ' min');
+    line('Total Time Loss (info only)', tlSumPdf + ' min');
     y += 3;
 
     section('BIKE PLAN');
