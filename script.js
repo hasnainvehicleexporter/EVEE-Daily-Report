@@ -1,1793 +1,2113 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
 
-    /* =====================================================
-       BASIC ELEMENTS
-    ===================================================== */
+  // =========================================================
+  // HELPER FUNCTIONS
+  // =========================================================
 
-    const reportDate =
-        document.getElementById("reportDate");
+  const $ = (id) => document.getElementById(id);
 
-    const totalWorkers =
-        document.getElementById("totalWorkers");
+  function getNumber(id) {
+    const element = $(id);
 
-    const absentWorkers =
-        document.getElementById("absentWorkers");
+    if (!element) return 0;
 
-    const shiftHours =
-        document.getElementById("shiftHours");
+    const value = parseFloat(element.value);
+
+    return isNaN(value) ? 0 : value;
+  }
+
+  function formatNumber(number) {
+    if (!isFinite(number)) return "0";
+
+    if (Number.isInteger(number)) {
+      return number.toString();
+    }
+
+    return number
+      .toFixed(2)
+      .replace(/\.00$/, "");
+  }
+
+  function createRemoveButton() {
+
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "remove-btn";
+    button.textContent = "Remove";
+
+    button.addEventListener("click", () => {
+
+      const row = button.closest(".dynamic-row");
+
+      if (row) {
+        row.remove();
+      }
+
+      updateAll();
+    });
+
+    return button;
+  }
 
 
-    /* =====================================================
-       DEFAULT DATE
-    ===================================================== */
+  // =========================================================
+  // DATE
+  // =========================================================
 
-    const today = new Date();
+  function setToday() {
 
-    const todayString =
-        today.getFullYear() +
-        "-" +
-        String(today.getMonth() + 1).padStart(2, "0") +
-        "-" +
+    const dateInput = $("reportDate");
+
+    if (!dateInput) return;
+
+    if (!dateInput.value) {
+
+      const today = new Date();
+
+      const year = today.getFullYear();
+
+      const month =
+        String(today.getMonth() + 1).padStart(2, "0");
+
+      const day =
         String(today.getDate()).padStart(2, "0");
 
-    reportDate.value = todayString;
-
-
-    /* =====================================================
-       HELPER
-    ===================================================== */
-
-    function getNumber(element) {
-
-        const value =
-            parseFloat(element.value);
-
-        if (
-            isNaN(value) ||
-            value < 0
-        ) {
-            return 0;
-        }
-
-        return value;
+      dateInput.value =
+        `${year}-${month}-${day}`;
     }
-
-
-    function createRemoveButton() {
-
-        const button =
-            document.createElement("button");
-
-        button.type = "button";
-
-        button.className =
-            "btn remove-btn";
-
-        button.textContent =
-            "Remove";
-
-        return button;
-    }
-
-
-    /* =====================================================
-       TIME CALCULATOR
-    ===================================================== */
-
-    function calculateTimeDifference(
-        from,
-        to
-    ) {
-
-        if (
-            !from ||
-            !to
-        ) {
-            return 0;
-        }
-
-
-        const fromParts =
-            from.split(":");
-
-        const toParts =
-            to.split(":");
-
-
-        let fromMinutes =
-            parseInt(fromParts[0]) * 60 +
-            parseInt(fromParts[1]);
-
-
-        let toMinutes =
-            parseInt(toParts[0]) * 60 +
-            parseInt(toParts[1]);
-
-
-        /*
-            If To is earlier than From,
-            assume the loss crossed midnight.
-        */
-
-        if (
-            toMinutes < fromMinutes
-        ) {
-
-            toMinutes += 1440;
-
-        }
-
-
-        return (
-            toMinutes -
-            fromMinutes
-        );
-
-    }
-
-
-    /* =====================================================
-       NORMAL DEDUCTIONS
-    ===================================================== */
-
-    const deductionContainer =
-        document.getElementById(
-            "deductionContainer"
-        );
-
-
-    document
-        .getElementById(
-            "addDeductionBtn"
-        )
-        .addEventListener(
-            "click",
-            addDeduction
-        );
-
-
-    function addDeduction() {
-
-        const row =
-            document.createElement("div");
-
-        row.className =
-            "dynamic-row";
-
-
-        row.innerHTML = `
-
-            <div class="input-group">
-
-                <label>
-                    Reason
-                </label>
-
-                <input
-                    type="text"
-                    class="deduction-reason"
-                    placeholder="Morning Assembly"
-                >
-
-            </div>
-
-
-            <div class="input-group">
-
-                <label>
-                    Minutes
-                </label>
-
-                <input
-                    type="number"
-                    min="0"
-                    class="deduction-minutes"
-                    placeholder="15"
-                >
-
-            </div>
-
-        `;
-
-
-        const remove =
-            createRemoveButton();
-
-
-        row.appendChild(remove);
-
-
-        deductionContainer.appendChild(row);
-
-
-        row.querySelectorAll("input")
-            .forEach(input => {
-
-                input.addEventListener(
-                    "input",
-                    updateAll
-                );
-
-            });
-
-
-        remove.addEventListener(
-            "click",
-            function () {
-
-                row.remove();
-
-                updateAll();
-
-            }
-        );
-
-
-        updateAll();
-
-    }
-
-
-    /* =====================================================
-       TIME LOSS
-    ===================================================== */
-
-    const lossContainer =
-        document.getElementById(
-            "lossContainer"
-        );
-
-
-    document
-        .getElementById(
-            "addLossBtn"
-        )
-        .addEventListener(
-            "click",
-            addTimeLoss
-        );
-
-
-    function addTimeLoss() {
-
-        const row =
-            document.createElement("div");
-
-        row.className =
-            "loss-row";
-
-
-        row.innerHTML = `
-
-            <div class="input-group">
-
-                <label>
-                    From Time
-                </label>
-
-                <input
-                    type="time"
-                    class="loss-from"
-                >
-
-            </div>
-
-
-            <div class="input-group">
-
-                <label>
-                    To Time
-                </label>
-
-                <input
-                    type="time"
-                    class="loss-to"
-                >
-
-            </div>
-
-
-            <div class="input-group loss-reason">
-
-                <label>
-                    Reason
-                </label>
-
-                <input
-                    type="text"
-                    class="loss-reason-input"
-                    placeholder="Machine breakdown"
-                >
-
-            </div>
-
-
-            <div class="input-group">
-
-                <label>
-                    Time Lost
-                </label>
-
-                <div class="loss-result">
-                    0 min
-                </div>
-
-            </div>
-
-        `;
-
-
-        const remove =
-            createRemoveButton();
-
-
-        row.appendChild(remove);
-
-
-        lossContainer.appendChild(row);
-
-
-        row.querySelectorAll("input")
-            .forEach(input => {
-
-                input.addEventListener(
-                    "input",
-                    updateAll
-                );
-
-            });
-
-
-        remove.addEventListener(
-            "click",
-            function () {
-
-                row.remove();
-
-                updateAll();
-
-            }
-        );
-
-
-        updateAll();
-
-    }
-
-
-    function getTimeLossData() {
-
-        const rows =
-            document.querySelectorAll(
-                ".loss-row"
-            );
-
-
-        const data = [];
-
-
-        rows.forEach(row => {
-
-            const from =
-                row.querySelector(
-                    ".loss-from"
-                ).value;
-
-
-            const to =
-                row.querySelector(
-                    ".loss-to"
-                ).value;
-
-
-            const reason =
-                row.querySelector(
-                    ".loss-reason-input"
-                ).value.trim();
-
-
-            const minutes =
-                calculateTimeDifference(
-                    from,
-                    to
-                );
-
-
-            row.querySelector(
-                ".loss-result"
-            ).textContent =
-                minutes + " min";
-
-
-            if (
-                from ||
-                to ||
-                reason
-            ) {
-
-                data.push({
-
-                    from,
-                    to,
-                    reason,
-                    minutes
-
-                });
-
-            }
-
-        });
-
-
-        return data;
-
-    }
-
-
-    /* =====================================================
-       BIKE ROWS
-    ===================================================== */
-
-    function addBikeRow(
-        containerId
-    ) {
-
-        const container =
-            document.getElementById(
-                containerId
-            );
-
-
-        const row =
-            document.createElement("div");
-
-
-        row.className =
-            "dynamic-row";
-
-
-        row.innerHTML = `
-
-            <div class="input-group">
-
-                <label>
-                    Model
-                </label>
-
-                <input
-                    type="text"
-                    class="bike-model"
-                    placeholder="Model"
-                >
-
-            </div>
-
-
-            <div class="input-group">
-
-                <label>
-                    Color
-                </label>
-
-                <input
-                    type="text"
-                    class="bike-color"
-                    placeholder="Color"
-                >
-
-            </div>
-
-
-            <div class="input-group">
-
-                <label>
-                    Quantity
-                </label>
-
-                <input
-                    type="number"
-                    min="0"
-                    class="bike-qty"
-                    placeholder="Qty"
-                >
-
-            </div>
-
-        `;
-
-
-        const remove =
-            createRemoveButton();
-
-
-        row.appendChild(remove);
-
-
-        container.appendChild(row);
-
-
-        row.querySelectorAll("input")
-            .forEach(input => {
-
-                input.addEventListener(
-                    "input",
-                    updateAll
-                );
-
-            });
-
-
-        remove.addEventListener(
-            "click",
-            function () {
-
-                row.remove();
-
-                updateAll();
-
-            }
-        );
-
-
-        updateAll();
-
-    }
-
-
-    function getBikeData(
-        containerId
-    ) {
-
-        const rows =
-            document.querySelectorAll(
-                "#" +
-                containerId +
-                " .dynamic-row"
-            );
-
-
-        const data = [];
-
-
-        rows.forEach(row => {
-
-            const model =
-                row.querySelector(
-                    ".bike-model"
-                ).value.trim();
-
-
-            const color =
-                row.querySelector(
-                    ".bike-color"
-                ).value.trim();
-
-
-            const qty =
-                parseInt(
-                    row.querySelector(
-                        ".bike-qty"
-                    ).value
-                ) || 0;
-
-
-            if (
-                model ||
-                color ||
-                qty
-            ) {
-
-                data.push({
-
-                    model,
-                    color,
-                    qty
-
-                });
-
-            }
-
-        });
-
-
-        return data;
-
-    }
-
-
-    function getTotalQuantity(
-        data
-    ) {
-
-        return data.reduce(
-            function (
-                total,
-                item
-            ) {
-
-                return (
-                    total +
-                    item.qty
-                );
-
-            },
-            0
-        );
-
-    }
-
-
-    /* =====================================================
-       ADD BIKE BUTTONS
-    ===================================================== */
-
-    document
-        .getElementById(
-            "addPlanBtn"
-        )
-        .addEventListener(
-            "click",
-            function () {
-
-                addBikeRow(
-                    "planContainer"
-                );
-
-            }
-        );
-
-
-    document
-        .getElementById(
-            "addCompletedBtn"
-        )
-        .addEventListener(
-            "click",
-            function () {
-
-                addBikeRow(
-                    "completedContainer"
-                );
-
-            }
-        );
-
-
-    document
-        .getElementById(
-            "addReworkBtn"
-        )
-        .addEventListener(
-            "click",
-            function () {
-
-                addBikeRow(
-                    "reworkContainer"
-                );
-
-            }
-        );
-
-
-    document
-        .getElementById(
-            "addFgBtn"
-        )
-        .addEventListener(
-            "click",
-            function () {
-
-                addBikeRow(
-                    "fgContainer"
-                );
-
-            }
-        );
-
-
-    /* =====================================================
-       QUALITY DEPARTMENT
-    ===================================================== */
-
-    const sprPercentage =
-        document.getElementById(
-            "sprPercentage"
-        );
-
-
-    const qualityFg =
-        document.getElementById(
-            "qualityFg"
-        );
-
-
-    sprPercentage.addEventListener(
-        "input",
-        updateAll
+  }
+
+
+  // =========================================================
+  // NORMAL TIME DEDUCTIONS
+  // =========================================================
+
+  function addDeductionRow(
+    reason = "",
+    minutes = ""
+  ) {
+
+    const container =
+      $("deductionContainer");
+
+    if (!container) return;
+
+    const row =
+      document.createElement("div");
+
+    row.className =
+      "dynamic-row deduction-row";
+
+    row.innerHTML = `
+
+      <div>
+        <div class="row-label">
+          Reason
+        </div>
+
+        <input
+          type="text"
+          class="deduction-reason"
+          placeholder="Morning Assembly / Tea Break"
+          value="${reason}"
+        >
+      </div>
+
+      <div>
+        <div class="row-label">
+          Minutes
+        </div>
+
+        <input
+          type="number"
+          class="deduction-minutes"
+          min="0"
+          step="1"
+          placeholder="Minutes"
+          value="${minutes}"
+        >
+      </div>
+
+    `;
+
+    row.appendChild(
+      createRemoveButton()
     );
 
+    container.appendChild(row);
 
-    qualityFg.addEventListener(
-        "input",
-        updateAll
+    row
+      .querySelectorAll("input")
+      .forEach(input => {
+
+        input.addEventListener(
+          "input",
+          updateAll
+        );
+
+        input.addEventListener(
+          "change",
+          updateAll
+        );
+      });
+  }
+
+
+  function getDeductionData() {
+
+    const rows =
+      document.querySelectorAll(
+        ".deduction-row"
+      );
+
+    let total = 0;
+
+    const data = [];
+
+    rows.forEach(row => {
+
+      const reason =
+        row.querySelector(
+          ".deduction-reason"
+        )?.value.trim() || "";
+
+      const minutes =
+        parseFloat(
+          row.querySelector(
+            ".deduction-minutes"
+          )?.value
+        ) || 0;
+
+      if (reason || minutes) {
+
+        data.push({
+          reason,
+          minutes
+        });
+      }
+
+      total += minutes;
+    });
+
+    return {
+      total,
+      data
+    };
+  }
+
+
+  // =========================================================
+  // TIME LOSS
+  // =========================================================
+
+  function calculateTimeDifference(
+    from,
+    to
+  ) {
+
+    if (!from || !to) {
+      return 0;
+    }
+
+    const fromParts =
+      from.split(":").map(Number);
+
+    const toParts =
+      to.split(":").map(Number);
+
+    const fromHour =
+      fromParts[0];
+
+    const fromMinute =
+      fromParts[1];
+
+    const toHour =
+      toParts[0];
+
+    const toMinute =
+      toParts[1];
+
+    let fromTotal =
+      fromHour * 60 + fromMinute;
+
+    let toTotal =
+      toHour * 60 + toMinute;
+
+    // Handles overnight time
+    if (toTotal < fromTotal) {
+      toTotal += 1440;
+    }
+
+    return toTotal - fromTotal;
+  }
+
+
+  function addLossRow() {
+
+    const container =
+      $("lossContainer");
+
+    if (!container) return;
+
+    const row =
+      document.createElement("div");
+
+    row.className =
+      "dynamic-row loss-row";
+
+    row.innerHTML = `
+
+      <div>
+        <div class="row-label">
+          From
+        </div>
+
+        <input
+          type="time"
+          class="loss-from"
+        >
+      </div>
+
+      <div>
+        <div class="row-label">
+          To
+        </div>
+
+        <input
+          type="time"
+          class="loss-to"
+        >
+      </div>
+
+      <div>
+        <div class="row-label">
+          Reason
+        </div>
+
+        <input
+          type="text"
+          class="loss-reason"
+          placeholder="Machine breakdown / Material shortage"
+        >
+      </div>
+
+      <div>
+        <div class="row-label">
+          Loss
+        </div>
+
+        <div class="calculated loss-minutes">
+          0 min
+        </div>
+      </div>
+
+    `;
+
+    row.appendChild(
+      createRemoveButton()
     );
 
+    container.appendChild(row);
 
-    /* =====================================================
-       CYCLE TIME
-    ===================================================== */
+    row
+      .querySelectorAll("input")
+      .forEach(input => {
 
-    for (
-        let i = 1;
-        i <= 3;
-        i++
-    ) {
+        input.addEventListener(
+          "input",
+          updateAll
+        );
 
-        document
-            .getElementById(
-                "modelName" + i
-            )
-            .addEventListener(
-                "input",
-                updateAll
-            );
+        input.addEventListener(
+          "change",
+          updateAll
+        );
+      });
+  }
 
 
-        document
-            .getElementById(
-                "cycleTime" + i
-            )
-            .addEventListener(
-                "input",
-                updateAll
-            );
+  function getTimeLossData() {
 
-    }
+    const rows =
+      document.querySelectorAll(
+        ".loss-row"
+      );
 
+    let total = 0;
 
-    /* =====================================================
-       MAIN CALCULATION
-    ===================================================== */
+    const data = [];
 
-    function calculateData() {
+    rows.forEach(row => {
 
-        const workers =
-            getNumber(
-                totalWorkers
-            );
+      const from =
+        row.querySelector(
+          ".loss-from"
+        )?.value || "";
 
+      const to =
+        row.querySelector(
+          ".loss-to"
+        )?.value || "";
 
-        const absent =
-            getNumber(
-                absentWorkers
-            );
+      const reason =
+        row.querySelector(
+          ".loss-reason"
+        )?.value.trim() || "";
 
+      const minutes =
+        calculateTimeDifference(
+          from,
+          to
+        );
 
-        const present =
-            Math.max(
-                workers -
-                absent,
-                0
-            );
+      const display =
+        row.querySelector(
+          ".loss-minutes"
+        );
 
+      if (display) {
 
-        let presentPercentage =
-            0;
+        display.textContent =
+          `${minutes} min`;
+      }
 
+      if (
+        from ||
+        to ||
+        reason
+      ) {
 
-        if (
-            workers > 0
-        ) {
+        data.push({
+          from,
+          to,
+          reason,
+          minutes
+        });
+      }
 
-            presentPercentage =
-                (
-                    present /
-                    workers
-                ) *
-                100;
+      total += minutes;
+    });
 
-        }
-
-
-        const hours =
-            getNumber(
-                shiftHours
-            );
-
-
-        const shiftMinutes =
-            hours * 60;
-
-
-        /* Normal deductions */
-
-        const deductionRows =
-            document.querySelectorAll(
-                "#deductionContainer .dynamic-row"
-            );
+    return {
+      total,
+      data
+    };
+  }
 
 
-        let normalDeductions = 0;
+  // =========================================================
+  // BIKE PLAN
+  // =========================================================
+
+  function addPlanRow() {
+
+    const container =
+      $("planContainer");
+
+    if (!container) return;
+
+    const row =
+      document.createElement("div");
+
+    row.className =
+      "dynamic-row bike-row plan-row";
+
+    row.innerHTML = `
+
+      <!-- MODEL -->
+
+      <div>
+        <div class="row-label">
+          Model
+        </div>
+
+        <input
+          type="text"
+          class="plan-model"
+          placeholder="Model name"
+        >
+      </div>
 
 
-        deductionRows.forEach(
-            function (row) {
+      <!-- COLOR -->
 
-                normalDeductions +=
-                    parseFloat(
-                        row.querySelector(
-                            ".deduction-minutes"
-                        ).value
-                    ) || 0;
+      <div>
+        <div class="row-label">
+          Color
+        </div>
 
-            }
+        <input
+          type="text"
+          class="plan-color"
+          placeholder="Color"
+        >
+      </div>
+
+
+      <!-- QUANTITY -->
+
+      <div>
+        <div class="row-label">
+          Planned Qty
+        </div>
+
+        <input
+          type="number"
+          class="plan-qty"
+          min="0"
+          step="1"
+          placeholder="Qty"
+        >
+      </div>
+
+
+      <!-- CYCLE TIME -->
+
+      <div>
+        <div class="row-label">
+          Cycle Time
+        </div>
+
+        <input
+          type="number"
+          class="plan-cycle"
+          min="0"
+          step="0.01"
+          placeholder="Min / bike"
+        >
+      </div>
+
+
+      <!-- REQUIRED MINUTES -->
+
+      <div>
+        <div class="row-label">
+          Required Minutes
+        </div>
+
+        <div class="calculated plan-required">
+          0 min
+        </div>
+      </div>
+
+
+      <!-- POSSIBLE BIKES -->
+
+      <div>
+        <div class="row-label">
+          Possible Bikes
+        </div>
+
+        <div class="calculated plan-capacity">
+          0 bikes
+        </div>
+      </div>
+
+
+      <!-- BALANCE -->
+
+      <div>
+        <div class="row-label">
+          Balance
+        </div>
+
+        <div class="calculated plan-balance">
+          0
+        </div>
+      </div>
+
+    `;
+
+    row.appendChild(
+      createRemoveButton()
+    );
+
+    container.appendChild(row);
+
+    row
+      .querySelectorAll("input")
+      .forEach(input => {
+
+        input.addEventListener(
+          "input",
+          updateAll
+        );
+
+        input.addEventListener(
+          "change",
+          updateAll
+        );
+      });
+  }
+
+
+  function getPlanData(
+    finalMinutes
+  ) {
+
+    const rows =
+      document.querySelectorAll(
+        ".plan-row"
+      );
+
+    let totalQty = 0;
+
+    let totalRequiredMinutes = 0;
+
+    const data = [];
+
+    rows.forEach(row => {
+
+      const model =
+        row.querySelector(
+          ".plan-model"
+        )?.value.trim() || "";
+
+      const color =
+        row.querySelector(
+          ".plan-color"
+        )?.value.trim() || "";
+
+      const qty =
+        parseFloat(
+          row.querySelector(
+            ".plan-qty"
+          )?.value
+        ) || 0;
+
+      const cycle =
+        parseFloat(
+          row.querySelector(
+            ".plan-cycle"
+          )?.value
+        ) || 0;
+
+
+      // Required minutes
+      const requiredMinutes =
+        qty * cycle;
+
+
+      // Possible bikes
+      let possibleBikes = 0;
+
+      if (cycle > 0) {
+
+        possibleBikes =
+          Math.floor(
+            finalMinutes / cycle
+          );
+      }
+
+
+      // Difference between capacity and plan
+      const balance =
+        possibleBikes - qty;
+
+
+      // Update display
+
+      const requiredDisplay =
+        row.querySelector(
+          ".plan-required"
+        );
+
+      const capacityDisplay =
+        row.querySelector(
+          ".plan-capacity"
+        );
+
+      const balanceDisplay =
+        row.querySelector(
+          ".plan-balance"
         );
 
 
-        /* Time loss */
+      if (requiredDisplay) {
 
-        const lossData =
-            getTimeLossData();
+        requiredDisplay.textContent =
+          `${formatNumber(requiredMinutes)} min`;
+      }
 
 
-        const totalLoss =
-            lossData.reduce(
-                function (
-                    total,
-                    item
-                ) {
+      if (capacityDisplay) {
 
-                    return (
-                        total +
-                        item.minutes
-                    );
+        capacityDisplay.textContent =
+          `${formatNumber(possibleBikes)} bikes`;
+      }
 
-                },
-                0
-            );
 
+      if (balanceDisplay) {
 
-        const finalMinutes =
-            Math.max(
-                shiftMinutes -
-                normalDeductions -
-                totalLoss,
-                0
-            );
+        if (balance > 0) {
 
-
-        return {
-
-            workers,
-            absent,
-            present,
-            presentPercentage,
-
-            hours,
-            shiftMinutes,
-
-            normalDeductions,
-
-            lossData,
-            totalLoss,
-
-            finalMinutes
-
-        };
-
-    }
-
-
-    /* =====================================================
-       UPDATE DASHBOARD
-    ===================================================== */
-
-    function updateAll() {
-
-        const data =
-            calculateData();
-
-
-        /* Manpower */
-
-        document.getElementById(
-            "presentWorkers"
-        ).textContent =
-            data.present;
-
-
-        document.getElementById(
-            "presentPercentage"
-        ).textContent =
-            data.presentPercentage.toFixed(1) +
-            "%";
-
-
-        /* Shift */
-
-        document.getElementById(
-            "shiftMinutes"
-        ).textContent =
-            Math.round(
-                data.shiftMinutes
-            );
-
-
-        document.getElementById(
-            "totalDeductions"
-        ).textContent =
-            Math.round(
-                data.normalDeductions +
-                data.totalLoss
-            ) +
-            " min";
-
-
-        document.getElementById(
-            "finalMinutes"
-        ).textContent =
-            Math.round(
-                data.finalMinutes
-            ) +
-            " min";
-
-
-        document.getElementById(
-            "totalLossMinutes"
-        ).textContent =
-            Math.round(
-                data.totalLoss
-            ) +
-            " minutes";
-
-
-        /* Bike data */
-
-        const plan =
-            getBikeData(
-                "planContainer"
-            );
-
-
-        const completed =
-            getBikeData(
-                "completedContainer"
-            );
-
-
-        const rework =
-            getBikeData(
-                "reworkContainer"
-            );
-
-
-        const fg =
-            getBikeData(
-                "fgContainer"
-            );
-
-
-        const planTotal =
-            getTotalQuantity(plan);
-
-
-        const completedTotal =
-            getTotalQuantity(completed);
-
-
-        /* Dashboard */
-
-        document.getElementById(
-            "summaryWorkers"
-        ).textContent =
-            data.workers;
-
-
-        document.getElementById(
-            "summaryPresent"
-        ).textContent =
-            data.present;
-
-
-        document.getElementById(
-            "summaryMinutes"
-        ).textContent =
-            Math.round(
-                data.finalMinutes
-            );
-
-
-        document.getElementById(
-            "summaryCompleted"
-        ).textContent =
-            completedTotal;
-
-
-        /* Totals */
-
-        document.getElementById(
-            "totalPlan"
-        ).textContent =
-            planTotal +
-            " bikes";
-
-
-        document.getElementById(
-            "totalCompleted"
-        ).textContent =
-            completedTotal +
-            " bikes";
-
-
-        document.getElementById(
-            "totalRework"
-        ).textContent =
-            getTotalQuantity(
-                rework
-            ) +
-            " bikes";
-
-
-        document.getElementById(
-            "totalFG"
-        ).textContent =
-            getTotalQuantity(
-                fg
-            ) +
-            " bikes";
-
-
-        /* Quality */
-
-        let spr =
-            getNumber(
-                sprPercentage
-            );
-
-
-        if (
-            spr > 100
-        ) {
-
-            spr = 100;
-
-        }
-
-
-        document.getElementById(
-            "sprDisplay"
-        ).textContent =
-            spr.toFixed(2) +
-            "%";
-
-
-        document.getElementById(
-            "qualityFgDisplay"
-        ).textContent =
-            getNumber(
-                qualityFg
-            );
-
-
-        /* Capacity */
-
-        for (
-            let i = 1;
-            i <= 3;
-            i++
-        ) {
-
-            const cycle =
-                getNumber(
-                    document.getElementById(
-                        "cycleTime" + i
-                    )
-                );
-
-
-            let capacity = 0;
-
-
-            if (
-                cycle > 0
-            ) {
-
-                capacity =
-                    Math.floor(
-                        data.finalMinutes /
-                        cycle
-                    );
-
-            }
-
-
-            document.getElementById(
-                "capacity" + i
-            ).textContent =
-                capacity +
-                " bikes";
-
-        }
-
-
-        generateReport();
-
-    }
-
-
-    /* =====================================================
-       REPORT LIST
-    ===================================================== */
-
-    function formatBikeList(
-        data
-    ) {
-
-        if (
-            data.length === 0
-        ) {
-
-            return "None";
-
-        }
-
-
-        return data.map(
-            function (item) {
-
-                return (
-                    "- " +
-                    (
-                        item.model ||
-                        "N/A"
-                    ) +
-                    " | Color: " +
-                    (
-                        item.color ||
-                        "N/A"
-                    ) +
-                    " | Qty: " +
-                    item.qty
-                );
-
-            }
-        ).join("\n");
-
-    }
-
-
-    /* =====================================================
-       GENERATE FINAL REPORT
-    ===================================================== */
-
-    function generateReport() {
-
-        const data =
-            calculateData();
-
-
-        const plan =
-            getBikeData(
-                "planContainer"
-            );
-
-
-        const completed =
-            getBikeData(
-                "completedContainer"
-            );
-
-
-        const rework =
-            getBikeData(
-                "reworkContainer"
-            );
-
-
-        const fg =
-            getBikeData(
-                "fgContainer"
-            );
-
-
-        const totalPlan =
-            getTotalQuantity(
-                plan
-            );
-
-
-        const totalCompleted =
-            getTotalQuantity(
-                completed
-            );
-
-
-        const planBalance =
-            Math.max(
-                totalPlan -
-                totalCompleted,
-                0
-            );
-
-
-        const qualityFG =
-            getNumber(
-                qualityFg
-            );
-
-
-        const spr =
-            Math.min(
-                getNumber(
-                    sprPercentage
-                ),
-                100
-            );
-
-
-        let report = "";
-
-
-        report +=
-            "EVEE DAILY REPORT\n";
-
-        report +=
-            "========================================\n\n";
-
-
-        report +=
-            "DATE: " +
-            (
-                reportDate.value ||
-                "N/A"
-            ) +
-            "\n\n";
-
-
-        /* MANPOWER */
-
-        report +=
-            "1. MANPOWER\n";
-
-        report +=
-            "----------------------------------------\n";
-
-        report +=
-            "Total Workers: " +
-            data.workers +
-            "\n";
-
-        report +=
-            "Absent Workers: " +
-            data.absent +
-            "\n";
-
-        report +=
-            "Present Workers: " +
-            data.present +
-            "\n";
-
-        report +=
-            "Present Percentage: " +
-            data.presentPercentage.toFixed(1) +
-            "%\n\n";
-
-
-        /* SHIFT */
-
-        report +=
-            "2. SHIFT TIME\n";
-
-        report +=
-            "----------------------------------------\n";
-
-        report +=
-            "Shift Hours: " +
-            data.hours +
-            " hours\n";
-
-        report +=
-            "Shift Minutes: " +
-            Math.round(
-                data.shiftMinutes
-            ) +
-            " min\n\n";
-
-
-        /* DEDUCTIONS */
-
-        report +=
-            "3. NORMAL TIME DEDUCTIONS\n";
-
-        report +=
-            "----------------------------------------\n";
-
-
-        const deductionRows =
-            document.querySelectorAll(
-                "#deductionContainer .dynamic-row"
-            );
-
-
-        let hasDeduction = false;
-
-
-        deductionRows.forEach(
-            function (row) {
-
-                const reason =
-                    row.querySelector(
-                        ".deduction-reason"
-                    ).value.trim();
-
-
-                const minutes =
-                    parseFloat(
-                        row.querySelector(
-                            ".deduction-minutes"
-                        ).value
-                    ) || 0;
-
-
-                if (
-                    reason ||
-                    minutes
-                ) {
-
-                    hasDeduction = true;
-
-
-                    report +=
-                        "- " +
-                        (
-                            reason ||
-                            "Deduction"
-                        ) +
-                        ": " +
-                        minutes +
-                        " min\n";
-
-                }
-
-            }
-        );
-
-
-        if (!hasDeduction) {
-
-            report +=
-                "None\n";
-
-        }
-
-
-        report +=
-            "Total Normal Deductions: " +
-            Math.round(
-                data.normalDeductions
-            ) +
-            " min\n\n";
-
-
-        /* TIME LOSS */
-
-        report +=
-            "4. TIME LOSS\n";
-
-        report +=
-            "----------------------------------------\n";
-
-
-        if (
-            data.lossData.length === 0
-        ) {
-
-            report +=
-                "No time loss recorded.\n";
+          balanceDisplay.textContent =
+            `+${formatNumber(balance)}`;
 
         } else {
 
-            data.lossData.forEach(
-                function (
-                    loss,
-                    index
-                ) {
-
-                    report +=
-                        (
-                            index + 1
-                        ) +
-                        ". " +
-                        (
-                            loss.from ||
-                            "--:--"
-                        ) +
-                        " - " +
-                        (
-                            loss.to ||
-                            "--:--"
-                        ) +
-                        " | Reason: " +
-                        (
-                            loss.reason ||
-                            "Not specified"
-                        ) +
-                        " | Loss: " +
-                        loss.minutes +
-                        " min\n";
-
-                }
-            );
-
+          balanceDisplay.textContent =
+            formatNumber(balance);
         }
+      }
 
 
-        report +=
-            "Total Time Loss: " +
-            Math.round(
-                data.totalLoss
-            ) +
-            " min\n\n";
+      // Save row
 
+      if (
+        model ||
+        color ||
+        qty ||
+        cycle
+      ) {
 
-        /* PRODUCTION TIME */
+        data.push({
 
-        report +=
-            "5. FINAL PRODUCTION TIME\n";
+          model,
+          color,
+          qty,
+          cycle,
+          requiredMinutes,
+          possibleBikes,
+          balance
 
-        report +=
-            "----------------------------------------\n";
+        });
+      }
 
-        report +=
-            "Shift Minutes: " +
-            Math.round(
-                data.shiftMinutes
-            ) +
-            " min\n";
 
-        report +=
-            "Normal Deductions: " +
-            Math.round(
-                data.normalDeductions
-            ) +
-            " min\n";
+      totalQty += qty;
 
-        report +=
-            "Time Loss: " +
-            Math.round(
-                data.totalLoss
-            ) +
-            " min\n";
+      totalRequiredMinutes +=
+        requiredMinutes;
 
-        report +=
-            "FINAL AVAILABLE MINUTES: " +
-            Math.round(
-                data.finalMinutes
-            ) +
-            " min\n\n";
+    });
 
 
-        /* PLAN */
+    return {
 
-        report +=
-            "6. BIKE PLAN\n";
+      data,
 
-        report +=
-            "----------------------------------------\n";
+      totalQty,
 
-        report +=
-            formatBikeList(
-                plan
-            ) +
-            "\n";
+      totalRequiredMinutes
 
-        report +=
-            "Total Planned: " +
-            totalPlan +
-            " bikes\n\n";
+    };
+  }
 
 
-        /* COMPLETED */
+  // =========================================================
+  // COMPLETED / REWORK / FG
+  // =========================================================
 
-        report +=
-            "7. COMPLETED BIKES\n";
+  function addBikeRow(
+    containerId,
+    className
+  ) {
 
-        report +=
-            "----------------------------------------\n";
+    const container =
+      $(containerId);
 
-        report +=
-            formatBikeList(
-                completed
-            ) +
-            "\n";
+    if (!container) return;
 
-        report +=
-            "Total Completed: " +
-            totalCompleted +
-            " bikes\n";
+    const row =
+      document.createElement("div");
 
-        report +=
-            "Balance vs Plan: " +
-            planBalance +
-            " bikes\n\n";
+    row.className =
+      `dynamic-row bike-row simple-bike-row ${className}`;
 
+    row.innerHTML = `
 
-        /* CAPACITY */
+      <div>
+        <div class="row-label">
+          Model
+        </div>
 
-        report +=
-            "8. PRODUCTION CAPACITY\n";
+        <input
+          type="text"
+          class="bike-model"
+          placeholder="Model name"
+        >
+      </div>
 
-        report +=
-            "----------------------------------------\n";
+      <div>
+        <div class="row-label">
+          Color
+        </div>
 
+        <input
+          type="text"
+          class="bike-color"
+          placeholder="Color"
+        >
+      </div>
 
-        for (
-            let i = 1;
-            i <= 3;
-            i++
-        ) {
+      <div>
+        <div class="row-label">
+          Qty
+        </div>
 
-            const name =
-                document.getElementById(
-                    "modelName" + i
-                ).value.trim();
+        <input
+          type="number"
+          class="bike-qty"
+          min="0"
+          step="1"
+          placeholder="Qty"
+        >
+      </div>
 
+    `;
 
-            const cycle =
-                getNumber(
-                    document.getElementById(
-                        "cycleTime" + i
-                    )
-                );
+    row.appendChild(
+      createRemoveButton()
+    );
 
+    container.appendChild(row);
 
-            if (
-                name ||
-                cycle
-            ) {
+    row
+      .querySelectorAll("input")
+      .forEach(input => {
 
-                const capacity =
-                    cycle > 0
-                        ? Math.floor(
-                            data.finalMinutes /
-                            cycle
-                        )
-                        : 0;
+        input.addEventListener(
+          "input",
+          updateAll
+        );
 
+        input.addEventListener(
+          "change",
+          updateAll
+        );
+      });
+  }
 
-                report +=
-                    "- " +
-                    (
-                        name ||
-                        "Model " + i
-                    ) +
-                    ": " +
-                    cycle +
-                    " min/bike → " +
-                    capacity +
-                    " bikes possible\n";
 
-            }
+  function getBikeData(
+    containerId
+  ) {
 
-        }
+    const rows =
+      document.querySelectorAll(
+        `#${containerId} .simple-bike-row`
+      );
 
+    const data = [];
 
-        report += "\n";
+    let total = 0;
 
+    rows.forEach(row => {
 
-        /* QUALITY */
+      const model =
+        row.querySelector(
+          ".bike-model"
+        )?.value.trim() || "";
 
-        report +=
-            "9. QUALITY DEPARTMENT\n";
+      const color =
+        row.querySelector(
+          ".bike-color"
+        )?.value.trim() || "";
 
-        report +=
-            "----------------------------------------\n";
+      const qty =
+        parseFloat(
+          row.querySelector(
+            ".bike-qty"
+          )?.value
+        ) || 0;
 
-        report +=
-            "Assembly Line SPR: " +
-            spr.toFixed(2) +
-            "%\n";
 
-        report +=
-            "Total FG Bikes: " +
-            qualityFG +
-            " bikes\n\n";
+      if (
+        model ||
+        color ||
+        qty
+      ) {
 
+        data.push({
+          model,
+          color,
+          qty
+        });
+      }
 
-        /* REWORK */
 
-        report +=
-            "10. REWORK BIKES\n";
+      total += qty;
 
-        report +=
-            "----------------------------------------\n";
+    });
 
-        report +=
-            formatBikeList(
-                rework
-            ) +
-            "\n";
 
-        report +=
-            "Total Rework: " +
-            getTotalQuantity(
-                rework
-            ) +
-            " bikes\n\n";
+    return {
+      data,
+      total
+    };
+  }
 
 
-        /* FG */
+  // =========================================================
+  // QUALITY DEPARTMENT
+  // =========================================================
 
-        report +=
-            "11. FG - FINISHED GOODS\n";
+  function updateQuality() {
 
-        report +=
-            "----------------------------------------\n";
+    const spr =
+      getNumber(
+        "sprPercentage"
+      );
 
-        report +=
-            formatBikeList(
-                fg
-            ) +
-            "\n";
+    const fg =
+      getNumber(
+        "qualityFg"
+      );
 
-        report +=
-            "Total FG Entries: " +
-            getTotalQuantity(
-                fg
-            ) +
-            " bikes\n\n";
 
+    if ($("sprDisplay")) {
 
-        /* END */
-
-        report +=
-            "========================================\n";
-
-        report +=
-            "EVEE DAILY REPORT - END\n";
-
-
-        document.getElementById(
-            "finalReport"
-        ).value =
-            report;
-
-
-        document.getElementById(
-            "reportDatePreview"
-        ).textContent =
-            reportDate.value ||
-            "-";
-
+      $("sprDisplay").textContent =
+        `${formatNumber(spr)}%`;
     }
 
 
-    /* =====================================================
-       COPY REPORT
-    ===================================================== */
+    if ($("qualityFgDisplay")) {
 
-    document
-        .getElementById(
-            "copyReportBtn"
-        )
-        .addEventListener(
-            "click",
-            async function () {
-
-                const report =
-                    document.getElementById(
-                        "finalReport"
-                    );
+      $("qualityFgDisplay").textContent =
+        formatNumber(fg);
+    }
+  }
 
 
-                try {
+  // =========================================================
+  // MAIN CALCULATION
+  // =========================================================
 
-                    await navigator.clipboard.writeText(
-                        report.value
-                    );
+  function calculateData() {
 
+    // =======================================================
+    // MANPOWER
+    // =======================================================
 
-                    this.textContent =
-                        "COPIED ✓";
+    const totalWorkers =
+      getNumber(
+        "totalWorkers"
+      );
 
-
-                    setTimeout(
-                        () => {
-
-                            this.textContent =
-                                "COPY REPORT";
-
-                        },
-                        1600
-                    );
-
-
-                } catch (error) {
-
-                    report.focus();
-
-                    report.select();
-
-                    document.execCommand(
-                        "copy"
-                    );
+    const absentWorkers =
+      getNumber(
+        "absentWorkers"
+      );
 
 
-                    this.textContent =
-                        "COPIED ✓";
+    const presentWorkers =
+      Math.max(
+        totalWorkers -
+        absentWorkers,
+        0
+      );
 
 
-                    setTimeout(
-                        () => {
+    let presentPercentage = 0;
 
-                            this.textContent =
-                                "COPY REPORT";
 
-                        },
-                        1600
-                    );
+    if (totalWorkers > 0) {
 
-                }
+      presentPercentage =
+        (
+          presentWorkers /
+          totalWorkers
+        ) * 100;
+    }
 
-            }
+
+    if ($("presentWorkers")) {
+
+      $("presentWorkers").textContent =
+        formatNumber(
+          presentWorkers
+        );
+    }
+
+
+    if ($("presentPercentage")) {
+
+      $("presentPercentage").textContent =
+        `${formatNumber(
+          presentPercentage
+        )}%`;
+    }
+
+
+    // =======================================================
+    // SHIFT TIME
+    // =======================================================
+
+    const shiftHours =
+      getNumber(
+        "shiftHours"
+      );
+
+
+    const shiftMinutes =
+      shiftHours * 60;
+
+
+    if ($("shiftMinutes")) {
+
+      $("shiftMinutes").textContent =
+        formatNumber(
+          shiftMinutes
+        );
+    }
+
+
+    // =======================================================
+    // NORMAL DEDUCTIONS
+    // =======================================================
+
+    const deductions =
+      getDeductionData();
+
+
+    const normalDeductionMinutes =
+      deductions.total;
+
+
+    // =======================================================
+    // TIME LOSS
+    // =======================================================
+
+    const loss =
+      getTimeLossData();
+
+
+    const totalLoss =
+      loss.total;
+
+
+    if ($("totalLossMinutes")) {
+
+      $("totalLossMinutes").textContent =
+        `${formatNumber(
+          totalLoss
+        )} min`;
+    }
+
+
+    // =======================================================
+    // TOTAL DEDUCTIONS
+    // =======================================================
+
+    const totalDeductions =
+      normalDeductionMinutes +
+      totalLoss;
+
+
+    if ($("totalDeductions")) {
+
+      $("totalDeductions").textContent =
+        formatNumber(
+          totalDeductions
+        );
+    }
+
+
+    // =======================================================
+    // FINAL AVAILABLE MINUTES
+    // =======================================================
+
+    const finalMinutes =
+      Math.max(
+        shiftMinutes -
+        totalDeductions,
+        0
+      );
+
+
+    if ($("finalMinutes")) {
+
+      $("finalMinutes").textContent =
+        formatNumber(
+          finalMinutes
+        );
+    }
+
+
+    // =======================================================
+    // BIKE PLAN
+    // =======================================================
+
+    const plan =
+      getPlanData(
+        finalMinutes
+      );
+
+
+    if ($("totalPlan")) {
+
+      $("totalPlan").textContent =
+        formatNumber(
+          plan.totalQty
+        );
+    }
+
+
+    if ($("totalPlanMinutes")) {
+
+      $("totalPlanMinutes").textContent =
+        formatNumber(
+          plan.totalRequiredMinutes
+        );
+    }
+
+
+    if ($("planAvailableMinutes")) {
+
+      $("planAvailableMinutes").textContent =
+        formatNumber(
+          finalMinutes
+        );
+    }
+
+
+    // =======================================================
+    // PLAN STATUS
+    // =======================================================
+
+    const planStatus =
+      $("planStatus");
+
+
+    if (planStatus) {
+
+      planStatus.className = "";
+
+
+      if (
+        plan.totalRequiredMinutes === 0
+      ) {
+
+        planStatus.textContent =
+          "—";
+
+      } else if (
+        plan.totalRequiredMinutes <=
+        finalMinutes
+      ) {
+
+        planStatus.textContent =
+          "PLAN CAN BE COMPLETED";
+
+        planStatus.classList.add(
+          "status-ok"
         );
 
+      } else {
 
-    /* =====================================================
-       BASIC INPUT EVENTS
-    ===================================================== */
+        const shortage =
+          plan.totalRequiredMinutes -
+          finalMinutes;
 
-    [
-        totalWorkers,
-        absentWorkers,
-        shiftHours,
-        reportDate
-    ].forEach(
-        function (input) {
 
-            input.addEventListener(
-                "input",
-                updateAll
+        planStatus.textContent =
+          `SHORT BY ${formatNumber(
+            shortage
+          )} MIN`;
+
+        planStatus.classList.add(
+          "status-short"
+        );
+      }
+    }
+
+
+    // =======================================================
+    // COMPLETED BIKES
+    // =======================================================
+
+    const completed =
+      getBikeData(
+        "completedContainer"
+      );
+
+
+    if ($("totalCompleted")) {
+
+      $("totalCompleted").textContent =
+        formatNumber(
+          completed.total
+        );
+    }
+
+
+    // =======================================================
+    // REWORK
+    // =======================================================
+
+    const rework =
+      getBikeData(
+        "reworkContainer"
+      );
+
+
+    if ($("totalRework")) {
+
+      $("totalRework").textContent =
+        formatNumber(
+          rework.total
+        );
+    }
+
+
+    // =======================================================
+    // FG
+    // =======================================================
+
+    const fg =
+      getBikeData(
+        "fgContainer"
+      );
+
+
+    if ($("totalFG")) {
+
+      $("totalFG").textContent =
+        formatNumber(
+          fg.total
+        );
+    }
+
+
+    // =======================================================
+    // QUALITY
+    // =======================================================
+
+    updateQuality();
+
+
+    // =======================================================
+    // SUMMARY
+    // =======================================================
+
+    if ($("summaryWorkers")) {
+
+      $("summaryWorkers").textContent =
+        formatNumber(
+          totalWorkers
+        );
+    }
+
+
+    if ($("summaryPresent")) {
+
+      $("summaryPresent").textContent =
+        formatNumber(
+          presentWorkers
+        );
+    }
+
+
+    if ($("summaryMinutes")) {
+
+      $("summaryMinutes").textContent =
+        formatNumber(
+          finalMinutes
+        );
+    }
+
+
+    if ($("summaryCompleted")) {
+
+      $("summaryCompleted").textContent =
+        formatNumber(
+          completed.total
+        );
+    }
+
+
+    return {
+
+      totalWorkers,
+      absentWorkers,
+      presentWorkers,
+      presentPercentage,
+
+      shiftHours,
+      shiftMinutes,
+
+      deductions,
+      normalDeductionMinutes,
+
+      loss,
+      totalLoss,
+
+      totalDeductions,
+      finalMinutes,
+
+      plan,
+
+      completed,
+
+      rework,
+
+      fg,
+
+      spr:
+        getNumber(
+          "sprPercentage"
+        ),
+
+      qualityFg:
+        getNumber(
+          "qualityFg"
+        )
+
+    };
+  }
+
+
+  // =========================================================
+  // BIKE LIST FORMAT
+  // =========================================================
+
+  function formatBikeList(
+    data
+  ) {
+
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      return "None";
+    }
+
+
+    return data
+      .map(item => {
+
+        const model =
+          item.model ||
+          "N/A";
+
+        const color =
+          item.color ||
+          "N/A";
+
+
+        return (
+          `${model} | ` +
+          `${color} | ` +
+          `Qty: ${formatNumber(
+            item.qty
+          )}`
+        );
+
+      })
+      .join("\n");
+  }
+
+
+  // =========================================================
+  // PLAN LIST FORMAT
+  // =========================================================
+
+  function formatPlanList(
+    data
+  ) {
+
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      return "None";
+    }
+
+
+    return data
+      .map(item => {
+
+        const model =
+          item.model ||
+          "N/A";
+
+        const color =
+          item.color ||
+          "N/A";
+
+
+        const balanceText =
+          item.balance >= 0
+            ? `+${formatNumber(
+                item.balance
+              )}`
+            : formatNumber(
+                item.balance
+              );
+
+
+        return (
+          `${model} | ` +
+          `${color} | ` +
+          `Plan: ${formatNumber(
+            item.qty
+          )} | ` +
+          `Cycle: ${formatNumber(
+            item.cycle
+          )} min/bike | ` +
+          `Required: ${formatNumber(
+            item.requiredMinutes
+          )} min | ` +
+          `Possible: ${formatNumber(
+            item.possibleBikes
+          )} bikes | ` +
+          `Balance: ${balanceText}`
+        );
+
+      })
+      .join("\n");
+  }
+
+
+  // =========================================================
+  // GENERATE FINAL REPORT
+  // =========================================================
+
+  function generateReport() {
+
+    const data =
+      calculateData();
+
+
+    const reportDate =
+      $("reportDate")?.value ||
+      "Not selected";
+
+
+    if ($("reportDatePreview")) {
+
+      $("reportDatePreview").textContent =
+        reportDate;
+    }
+
+
+    // =======================================================
+    // DEDUCTIONS
+    // =======================================================
+
+    let deductionLines = "- None";
+
+
+    if (
+      data.deductions.data.length > 0
+    ) {
+
+      deductionLines =
+        data.deductions.data
+          .map(item => {
+
+            return (
+              `- ${item.reason || "Deduction"}: ` +
+              `${formatNumber(
+                item.minutes
+              )} min`
             );
 
-            input.addEventListener(
-                "change",
-                updateAll
+          })
+          .join("\n");
+    }
+
+
+    // =======================================================
+    // TIME LOSS
+    // =======================================================
+
+    let lossLines = "- None";
+
+
+    if (
+      data.loss.data.length > 0
+    ) {
+
+      lossLines =
+        data.loss.data
+          .map(item => {
+
+            return (
+              `- ${item.from || "--"} to ` +
+              `${item.to || "--"} | ` +
+              `${item.reason || "No reason"} | ` +
+              `${formatNumber(
+                item.minutes
+              )} min`
             );
+
+          })
+          .join("\n");
+    }
+
+
+    // =======================================================
+    // OTHER DATA
+    // =======================================================
+
+    const completedLines =
+      formatBikeList(
+        data.completed.data
+      );
+
+
+    const planLines =
+      formatPlanList(
+        data.plan.data
+      );
+
+
+    const reworkLines =
+      formatBikeList(
+        data.rework.data
+      );
+
+
+    const fgLines =
+      formatBikeList(
+        data.fg.data
+      );
+
+
+    // =======================================================
+    // BALANCES
+    // =======================================================
+
+    const balanceVsPlan =
+      data.completed.total -
+      data.plan.totalQty;
+
+
+    const planMinutesDifference =
+      data.finalMinutes -
+      data.plan.totalRequiredMinutes;
+
+
+    // =======================================================
+    // BUILD REPORT
+    // =======================================================
+
+    let report = "";
+
+
+    report +=
+      "========================================\n";
+
+    report +=
+      "       EVEE DAILY PRODUCTION REPORT\n";
+
+    report +=
+      "========================================\n\n";
+
+
+    // DATE
+
+    report +=
+      `DATE: ${reportDate}\n\n`;
+
+
+    // =======================================================
+    // MANPOWER
+    // =======================================================
+
+    report +=
+      "---------------- MANPOWER ----------------\n";
+
+    report +=
+      `Total Workers       : ${formatNumber(
+        data.totalWorkers
+      )}\n`;
+
+    report +=
+      `Absent Workers      : ${formatNumber(
+        data.absentWorkers
+      )}\n`;
+
+    report +=
+      `Present Workers     : ${formatNumber(
+        data.presentWorkers
+      )}\n`;
+
+    report +=
+      `Present Worker %    : ${formatNumber(
+        data.presentPercentage
+      )}%\n\n`;
+
+
+    // =======================================================
+    // SHIFT TIME
+    // =======================================================
+
+    report +=
+      "---------------- SHIFT TIME ----------------\n";
+
+    report +=
+      `Shift Hours         : ${formatNumber(
+        data.shiftHours
+      )} hours\n`;
+
+    report +=
+      `Shift Minutes       : ${formatNumber(
+        data.shiftMinutes
+      )} min\n`;
+
+    report +=
+      `Normal Deductions   : ${formatNumber(
+        data.normalDeductionMinutes
+      )} min\n`;
+
+    report +=
+      `Time Loss           : ${formatNumber(
+        data.totalLoss
+      )} min\n`;
+
+    report +=
+      `Total Deductions    : ${formatNumber(
+        data.totalDeductions
+      )} min\n`;
+
+    report +=
+      `Final Available     : ${formatNumber(
+        data.finalMinutes
+      )} min\n\n`;
+
+
+    // =======================================================
+    // NORMAL DEDUCTIONS
+    // =======================================================
+
+    report +=
+      "----------- NORMAL DEDUCTIONS -----------\n";
+
+    report +=
+      `${deductionLines}\n\n`;
+
+
+    // =======================================================
+    // TIME LOSS
+    // =======================================================
+
+    report +=
+      "--------------- TIME LOSS ---------------\n";
+
+    report +=
+      `${lossLines}\n`;
+
+    report +=
+      `Total Time Loss     : ${formatNumber(
+        data.totalLoss
+      )} min\n\n`;
+
+
+    // =======================================================
+    // BIKE PLAN
+    // =======================================================
+
+    report +=
+      "---------------- BIKE PLAN ----------------\n";
+
+    report +=
+      `${planLines}\n\n`;
+
+    report +=
+      `Total Planned Bikes : ${formatNumber(
+        data.plan.totalQty
+      )}\n`;
+
+    report +=
+      `Required Minutes    : ${formatNumber(
+        data.plan.totalRequiredMinutes
+      )} min\n`;
+
+    report +=
+      `Available Minutes   : ${formatNumber(
+        data.finalMinutes
+      )} min\n`;
+
+
+    if (
+      data.plan.totalRequiredMinutes === 0
+    ) {
+
+      report +=
+        "Plan Status         : No plan entered\n";
+
+    } else if (
+      planMinutesDifference >= 0
+    ) {
+
+      report +=
+        "Plan Status         : CAN BE COMPLETED\n";
+
+      report +=
+        `Time Remaining      : ${formatNumber(
+          planMinutesDifference
+        )} min\n`;
+
+    } else {
+
+      report +=
+        "Plan Status         : NOT ENOUGH TIME\n";
+
+      report +=
+        `Time Shortage       : ${formatNumber(
+          Math.abs(
+            planMinutesDifference
+          )
+        )} min\n`;
+    }
+
+
+    report += "\n";
+
+
+    // =======================================================
+    // COMPLETED
+    // =======================================================
+
+    report +=
+      "------------ COMPLETED BIKES ------------\n";
+
+    report +=
+      `${completedLines}\n`;
+
+    report +=
+      `Total Completed     : ${formatNumber(
+        data.completed.total
+      )} bikes\n`;
+
+
+    if (balanceVsPlan > 0) {
+
+      report +=
+        `Balance vs Plan     : +${formatNumber(
+          balanceVsPlan
+        )} bikes\n`;
+
+    } else {
+
+      report +=
+        `Balance vs Plan     : ${formatNumber(
+          balanceVsPlan
+        )} bikes\n`;
+    }
+
+
+    report += "\n";
+
+
+    // =======================================================
+    // QUALITY DEPARTMENT
+    // =======================================================
+
+    report +=
+      "---------- QUALITY DEPARTMENT -----------\n";
+
+    report +=
+      `Assembly Line SPR   : ${formatNumber(
+        data.spr
+      )}%\n`;
+
+    report +=
+      `Quality FG Bikes    : ${formatNumber(
+        data.qualityFg
+      )} bikes\n\n`;
+
+
+    // =======================================================
+    // REWORK
+    // =======================================================
+
+    report +=
+      "-------------- REWORK BIKES --------------\n";
+
+    report +=
+      `${reworkLines}\n`;
+
+    report +=
+      `Total Rework        : ${formatNumber(
+        data.rework.total
+      )} bikes\n\n`;
+
+
+    // =======================================================
+    // FG
+    // =======================================================
+
+    report +=
+      "---------- FG - FINISHED GOODS ----------\n";
+
+    report +=
+      `${fgLines}\n`;
+
+    report +=
+      `Total FG            : ${formatNumber(
+        data.fg.total
+      )} bikes\n\n`;
+
+
+    // =======================================================
+    // END
+    // =======================================================
+
+    report +=
+      "========================================\n";
+
+    report +=
+      "             END OF REPORT\n";
+
+    report +=
+      "========================================";
+
+
+    if ($("finalReport")) {
+
+      $("finalReport").value =
+        report;
+    }
+
+  }
+
+
+  // =========================================================
+  // UPDATE EVERYTHING
+  // =========================================================
+
+  function updateAll() {
+
+    generateReport();
+
+  }
+
+
+  // =========================================================
+  // ADD BUTTONS
+  // =========================================================
+
+  if ($("addDeductionBtn")) {
+
+    $("addDeductionBtn")
+      .addEventListener(
+        "click",
+        () => {
+
+          addDeductionRow();
+
+          updateAll();
+        }
+      );
+  }
+
+
+  if ($("addLossBtn")) {
+
+    $("addLossBtn")
+      .addEventListener(
+        "click",
+        () => {
+
+          addLossRow();
+
+          updateAll();
+        }
+      );
+  }
+
+
+  if ($("addPlanBtn")) {
+
+    $("addPlanBtn")
+      .addEventListener(
+        "click",
+        () => {
+
+          addPlanRow();
+
+          updateAll();
+        }
+      );
+  }
+
+
+  if ($("addCompletedBtn")) {
+
+    $("addCompletedBtn")
+      .addEventListener(
+        "click",
+        () => {
+
+          addBikeRow(
+            "completedContainer",
+            "completed-row"
+          );
+
+          updateAll();
+        }
+      );
+  }
+
+
+  if ($("addReworkBtn")) {
+
+    $("addReworkBtn")
+      .addEventListener(
+        "click",
+        () => {
+
+          addBikeRow(
+            "reworkContainer",
+            "rework-row"
+          );
+
+          updateAll();
+        }
+      );
+  }
+
+
+  if ($("addFgBtn")) {
+
+    $("addFgBtn")
+      .addEventListener(
+        "click",
+        () => {
+
+          addBikeRow(
+            "fgContainer",
+            "fg-row"
+          );
+
+          updateAll();
+        }
+      );
+  }
+
+
+  // =========================================================
+  // COPY REPORT
+  // =========================================================
+
+  if ($("copyReportBtn")) {
+
+    $("copyReportBtn")
+      .addEventListener(
+        "click",
+        async () => {
+
+          const report =
+            $("finalReport")?.value || "";
+
+
+          if (!report.trim()) {
+
+            alert(
+              "There is no report to copy."
+            );
+
+            return;
+          }
+
+
+          const button =
+            $("copyReportBtn");
+
+
+          try {
+
+            await navigator.clipboard
+              .writeText(report);
+
+
+            const oldText =
+              button.textContent;
+
+
+            button.textContent =
+              "✓ REPORT COPIED";
+
+
+            setTimeout(() => {
+
+              button.textContent =
+                oldText;
+
+            }, 2000);
+
+
+          } catch (error) {
+
+            // Fallback
+
+            const textarea =
+              $("finalReport");
+
+
+            try {
+
+              textarea.removeAttribute(
+                "readonly"
+              );
+
+              textarea.focus();
+
+              textarea.select();
+
+              textarea.setSelectionRange(
+                0,
+                textarea.value.length
+              );
+
+
+              document.execCommand(
+                "copy"
+              );
+
+
+              textarea.setAttribute(
+                "readonly",
+                true
+              );
+
+
+              const oldText =
+                button.textContent;
+
+
+              button.textContent =
+                "✓ REPORT COPIED";
+
+
+              setTimeout(() => {
+
+                button.textContent =
+                  oldText;
+
+              }, 2000);
+
+
+            } catch (fallbackError) {
+
+              textarea.setAttribute(
+                "readonly",
+                true
+              );
+
+
+              alert(
+                "Copy failed. Please select the report and copy it manually."
+              );
+            }
+          }
 
         }
-    );
+      );
+  }
 
 
-    /* =====================================================
-       INITIAL ROWS
-    ===================================================== */
+  // =========================================================
+  // DATE LISTENER
+  // =========================================================
 
-    addDeduction();
+  if ($("reportDate")) {
 
-    addTimeLoss();
+    $("reportDate")
+      .addEventListener(
+        "input",
+        updateAll
+      );
 
-    addBikeRow(
-        "planContainer"
-    );
-
-    addBikeRow(
-        "completedContainer"
-    );
-
-    addBikeRow(
-        "reworkContainer"
-    );
-
-    addBikeRow(
-        "fgContainer"
-    );
+    $("reportDate")
+      .addEventListener(
+        "change",
+        updateAll
+      );
+  }
 
 
-    /* =====================================================
-       INITIAL UPDATE
-    ===================================================== */
+  // =========================================================
+  // QUALITY INPUT LISTENERS
+  // =========================================================
 
-    updateAll();
+  if ($("sprPercentage")) {
+
+    $("sprPercentage")
+      .addEventListener(
+        "input",
+        updateAll
+      );
+
+    $("sprPercentage")
+      .addEventListener(
+        "change",
+        updateAll
+      );
+  }
+
+
+  if ($("qualityFg")) {
+
+    $("qualityFg")
+      .addEventListener(
+        "input",
+        updateAll
+      );
+
+    $("qualityFg")
+      .addEventListener(
+        "change",
+        updateAll
+      );
+  }
+
+
+  // =========================================================
+  // INITIAL ROWS
+  // =========================================================
+
+  setToday();
+
+
+  // Normal deduction
+  addDeductionRow(
+    "Morning Assembly",
+    ""
+  );
+
+
+  // Time loss
+  addLossRow();
+
+
+  // Planned bike
+  addPlanRow();
+
+
+  // Completed bike
+  addBikeRow(
+    "completedContainer",
+    "completed-row"
+  );
+
+
+  // Rework
+  addBikeRow(
+    "reworkContainer",
+    "rework-row"
+  );
+
+
+  // FG
+  addBikeRow(
+    "fgContainer",
+    "fg-row"
+  );
+
+
+  // =========================================================
+  // INITIAL CALCULATION
+  // =========================================================
+
+  updateAll();
 
 });
