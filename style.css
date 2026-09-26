@@ -46,11 +46,22 @@ body {
   font-size: 1.15rem;
   font-weight: 700;
   color: #000;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   padding-bottom: 8px;
   border-bottom: 2px solid #9CE37D;
   display: inline-block;
 }
+
+.hint {
+  font-size: .82rem;
+  color: #666;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f7faf5;
+  border-left: 3px solid #9CE37D;
+  border-radius: 4px;
+}
+.hint strong { color: #c62828; }
 
 .sub {
   font-size: 1rem;
@@ -86,7 +97,6 @@ input[readonly] { background: #f0f2f5; color: #333; cursor: default; }
 .grid { display: grid; gap: 12px; }
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-4 { grid-template-columns: repeat(4, 1fr); }
 
 .summary-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .summary-card {
@@ -202,7 +212,6 @@ input[readonly] { background: #f0f2f5; color: #333; cursor: default; }
 }
 
 @media (max-width: 860px) {
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .summary-cards { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -210,7 +219,7 @@ input[readonly] { background: #f0f2f5; color: #333; cursor: default; }
   .container { padding: 0 10px; gap: 14px; margin: 14px auto; }
   .card { padding: 14px 14px; border-radius: 10px; }
   .header h1 { font-size: 1.2rem; }
-  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .summary-cards { grid-template-columns: 1fr 1fr; gap: 8px; }
   .summary-value { font-size: 1.15rem; }
   .dyn-table { font-size: .78rem; min-width: 480px; }
